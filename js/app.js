@@ -314,9 +314,9 @@ function consensusHtml(matchId, homeTeam, awayTeam) {
   return `<div class="consensus-wrap">
     <div class="consensus-bar" title="${homeTeam} ${pHome}% · Empate ${pDraw}% · ${awayTeam} ${pAway}%">${segs}</div>
     <div class="consensus-labels">
-      <span>${flag(homeTeam)} ${pHome}%</span>
-      ${pDraw ? `<span>Empate ${pDraw}%</span>` : ''}
-      <span>${pAway}% ${flag(awayTeam)}</span>
+      <span>${pHome}% local</span>
+      ${pDraw ? `<span>${pDraw}% empate</span>` : ''}
+      <span>${pAway}% visitante</span>
     </div>
   </div>`;
 }
