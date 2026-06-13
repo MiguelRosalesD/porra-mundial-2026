@@ -1,0 +1,390 @@
+{
+  "name": "Juan",
+  "pin": "4932",
+  "predictions": {
+    "M55": {
+      "home": 2,
+      "away": 1
+    },
+    "M56": {
+      "home": 1,
+      "away": 0
+    },
+    "M57": {
+      "home": 2,
+      "away": 0
+    },
+    "M58": {
+      "home": 0,
+      "away": 2
+    },
+    "M59": {
+      "home": 1,
+      "away": 1
+    },
+    "M60": {
+      "home": 0,
+      "away": 3
+    },
+    "M61": {
+      "home": 4,
+      "away": 0
+    },
+    "M62": {
+      "home": 0,
+      "away": 3
+    },
+    "M63": {
+      "home": 3,
+      "away": 0
+    },
+    "M64": {
+      "home": 3,
+      "away": 1
+    },
+    "M66": {
+      "home": 2,
+      "away": 0
+    },
+    "M65": {
+      "home": 2,
+      "away": 3
+    },
+    "M67": {
+      "home": 3,
+      "away": 1
+    },
+    "M68": {
+      "home": 1,
+      "away": 0
+    },
+    "M69": {
+      "home": 3,
+      "away": 0
+    },
+    "M70": {
+      "home": 0,
+      "away": 2
+    },
+    "M72": {
+      "home": 2,
+      "away": 2
+    },
+    "M71": {
+      "home": 0,
+      "away": 3
+    },
+    "M37": {
+      "home": 3,
+      "away": 2
+    },
+    "M38": {
+      "home": 2,
+      "away": 2
+    },
+    "M39": {
+      "home": 2,
+      "away": 0
+    },
+    "M40": {
+      "home": 1,
+      "away": 2
+    },
+    "M42": {
+      "home": 0,
+      "away": 4
+    },
+    "M41": {
+      "home": 1,
+      "away": 1
+    },
+    "M43": {
+      "home": 3,
+      "away": 0
+    },
+    "M44": {
+      "home": 0,
+      "away": 2
+    },
+    "M45": {
+      "home": 4,
+      "away": 1
+    },
+    "M46": {
+      "home": 3,
+      "away": 1
+    },
+    "M47": {
+      "home": 0,
+      "away": 1
+    },
+    "M48": {
+      "home": 2,
+      "away": 2
+    },
+    "M49": {
+      "home": 2,
+      "away": 2
+    },
+    "M50": {
+      "home": 0,
+      "away": 2
+    },
+    "M51": {
+      "home": 3,
+      "away": 0
+    },
+    "M52": {
+      "home": 1,
+      "away": 2
+    },
+    "M54": {
+      "home": 2,
+      "away": 1
+    },
+    "M53": {
+      "home": 1,
+      "away": 2
+    },
+    "M19": {
+      "home": 4,
+      "away": 1
+    },
+    "M20": {
+      "home": 1,
+      "away": 3
+    },
+    "M21": {
+      "home": 3,
+      "away": 0
+    },
+    "M22": {
+      "home": 2,
+      "away": 0
+    },
+    "M24": {
+      "home": 1,
+      "away": 1
+    },
+    "M23": {
+      "home": 1,
+      "away": 1
+    },
+    "M31": {
+      "home": 1,
+      "away": 1
+    },
+    "M32": {
+      "home": 2,
+      "away": 0
+    },
+    "M33": {
+      "home": 2,
+      "away": 1
+    },
+    "M34": {
+      "home": 0,
+      "away": 2
+    },
+    "M35": {
+      "home": 2,
+      "away": 2
+    },
+    "M36": {
+      "home": 0,
+      "away": 4
+    },
+    "M25": {
+      "home": 4,
+      "away": 0
+    },
+    "M26": {
+      "home": 1,
+      "away": 1
+    },
+    "M27": {
+      "home": 2,
+      "away": 0
+    },
+    "M28": {
+      "home": 2,
+      "away": 0
+    },
+    "M30": {
+      "home": 1,
+      "away": 3
+    },
+    "M29": {
+      "home": 1,
+      "away": 2
+    },
+    "M01": {
+      "home": 2,
+      "away": 0
+    },
+    "M02": {
+      "home": 2,
+      "away": 1
+    },
+    "M03": {
+      "home": 1,
+      "away": 0
+    },
+    "M04": {
+      "home": 1,
+      "away": 1
+    },
+    "M06": {
+      "home": 0,
+      "away": 2
+    },
+    "M05": {
+      "home": 1,
+      "away": 2
+    },
+    "M13": {
+      "home": 2,
+      "away": 2
+    },
+    "M14": {
+      "home": 1,
+      "away": 1
+    },
+    "M15": {
+      "home": 0,
+      "away": 2
+    },
+    "M16": {
+      "home": 4,
+      "away": 0
+    },
+    "M17": {
+      "home": 1,
+      "away": 3
+    },
+    "M18": {
+      "home": 3,
+      "away": 0
+    },
+    "M07": {
+      "home": 1,
+      "away": 1
+    },
+    "M08": {
+      "home": 0,
+      "away": 2
+    },
+    "M09": {
+      "home": 1,
+      "away": 0
+    },
+    "M10": {
+      "home": 2,
+      "away": 0
+    },
+    "M12": {
+      "home": 1,
+      "away": 0
+    },
+    "M11": {
+      "home": 2,
+      "away": 2
+    },
+    "R01": {
+      "winner": "Canada"
+    },
+    "R02": {
+      "winner": "Germany"
+    },
+    "R03": {
+      "winner": "Netherlands"
+    },
+    "R04": {
+      "winner": "Brazil"
+    },
+    "R05": {
+      "winner": "France"
+    },
+    "R06": {
+      "winner": "Senegal"
+    },
+    "R07": {
+      "winner": "South Korea"
+    },
+    "R08": {
+      "winner": "England"
+    },
+    "R09": {
+      "winner": "United States"
+    },
+    "R10": {
+      "winner": "Belgium"
+    },
+    "R11": {
+      "winner": "Colombia"
+    },
+    "R12": {
+      "winner": "Spain"
+    },
+    "R13": {
+      "winner": "Switzerland"
+    },
+    "R14": {
+      "winner": "Argentina"
+    },
+    "R15": {
+      "winner": "Portugal"
+    },
+    "R16": {
+      "winner": "Turkey"
+    },
+    "S01": {
+      "winner": "France"
+    },
+    "S02": {
+      "winner": "Netherlands"
+    },
+    "S03": {
+      "winner": "Brazil"
+    },
+    "S04": {
+      "winner": "England"
+    },
+    "S05": {
+      "winner": "Spain"
+    },
+    "S06": {
+      "winner": "United States"
+    },
+    "S07": {
+      "winner": "Argentina"
+    },
+    "S08": {
+      "winner": "Portugal"
+    },
+    "Q01": {
+      "winner": "Netherlands"
+    },
+    "Q02": {
+      "winner": "Spain"
+    },
+    "Q03": {
+      "winner": "England"
+    },
+    "Q04": {
+      "winner": "Portugal"
+    },
+    "SF1": {
+      "winner": "Spain"
+    },
+    "SF2": {
+      "winner": "Portugal"
+    },
+    "TP": {
+      "winner": "England"
+    },
+    "FN": {
+      "winner": "Spain"
+    }
+  }
+}
