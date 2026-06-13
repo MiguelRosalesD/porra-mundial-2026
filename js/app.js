@@ -744,17 +744,22 @@ function renderGroupsView() {
 function renderMatchesView() {
   const el = document.getElementById('matches-list');
   let html = '';
-  let lastGroup = null;
+  let lastDate = null;
 
-  for (const match of GROUP_MATCHES) {
-    if (match.group !== lastGroup) {
-      html += `<div class="section-title">Grupo ${match.group}</div>`;
-      lastGroup = match.group;
+  const sorted = [...GROUP_MATCHES].sort((a, b) =>
+    (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id)
+  );
+
+  for (const match of sorted) {
+    if (match.date !== lastDate) {
+      const label = match.date
+        ? new Date(match.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+        : 'Fecha por confirmar';
+      html += `<div class="section-title" style="text-transform:capitalize">${label}</div>`;
+      lastDate = match.date;
     }
     const result = resultsMap[match.id];
-    const liveIndicator = result?.live
-      ? `<span class="live-dot-sm"></span>`
-      : '';
+    const liveIndicator = result?.live ? `<span class="live-dot-sm"></span>` : '';
     const scoreH = result?.homeScore != null ? result.homeScore : '–';
     const scoreA = result?.awayScore != null ? result.awayScore : '–';
     const boxClass = result?.live ? 'score-box score-live' : 'score-box';
@@ -764,7 +769,7 @@ function renderMatchesView() {
       <div class="match-team home">${match.home}<span class="team-flag">${flag(match.home)}</span></div>
       <div class="match-score">
         <span class="${boxClass}">${liveIndicator}${scoreH} <span class="score-sep">:</span> ${scoreA}</span>
-        <div class="match-date">${match.date}</div>
+        <div class="match-date">Grupo ${match.group}</div>
         ${pending ? consensusHtml(match.id, match.home, match.away) : ''}
       </div>
       <div class="match-team away"><span class="team-flag">${flag(match.away)}</span>${match.away}</div>
