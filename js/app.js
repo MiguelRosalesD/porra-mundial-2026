@@ -108,6 +108,7 @@ function submitIdentity() {
   setupIdentityPill();
   renderLeaderboard();
   if (detailTarget) renderDetail();
+  maybeShowPenaltyModal();
 }
 
 function logout() {
@@ -807,11 +808,12 @@ function showSpinner(containerId) {
 function closePenaltyModal(e) {
   if (e && e.target !== document.getElementById('penalty-modal')) return;
   document.getElementById('penalty-modal').style.display = 'none';
-  sessionStorage.setItem('penalty_seen', '1');
+  if (selectedPlayer) localStorage.setItem('penalty_seen_' + selectedPlayer, '1');
 }
 
 function maybeShowPenaltyModal() {
-  if (!sessionStorage.getItem('penalty_seen'))
+  if (!selectedPlayer) return;
+  if (!localStorage.getItem('penalty_seen_' + selectedPlayer))
     document.getElementById('penalty-modal').style.display = 'flex';
 }
 
