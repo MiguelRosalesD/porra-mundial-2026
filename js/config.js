@@ -2,6 +2,6 @@
 const PARTICIPANT_FILES = [
   'participants/miguel.json',
   'participants/fran.json',
-  // 'participants/amigo3.json',
+  'participants/raul.json',
   // 'participants/amigo4.json',
 ];
