@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Porra Escuadrón Boquerón</title>
-  <link rel="stylesheet" href="css/styles.css?v=20260613-7">
+  <link rel="stylesheet" href="css/styles.css?v=20260613-8">
 </head>
 <body>
 
@@ -50,6 +50,25 @@
     <div id="identity-pill"></div>
   </div>
 </header>
+
+<!-- Penalty notice modal -->
+<div id="penalty-modal" class="modal-overlay">
+  <div class="modal-box penalty-box">
+    <div class="penalty-header">
+      <div class="penalty-seal">⚖️</div>
+      <div class="penalty-title">PENALIZACIÓN</div>
+      <div class="penalty-subtitle">JUZGADO A-13 · CIUDAD JUÁREZ, MÉXICO</div>
+    </div>
+    <div class="penalty-body">
+      <p>El jugador <strong>Juan González Rodríguez</strong> ha sido sometido la mañana del 13 de junio a un juicio en el que se le acusaba de hasta <strong>3 cargos</strong> por blanqueo de puntos y conflictos de intereses en los 3 primeros partidos desde la inauguración del mundial.</p>
+      <p>La resolución ha sido <strong>unánime</strong> por parte del juzgado A-13 de Ciudad Juárez, México, y se ha procedido a la <strong>deducción de los puntos</strong> ganados en esas jornadas para el jugador, lo cual lo sitúa en lo más bajo de la tabla.</p>
+    </div>
+    <div class="penalty-footer">
+      <div class="penalty-stamp">RESOLUCIÓN FIRME · 13·06·2026</div>
+      <button class="modal-btn-enter" onclick="closePenaltyModal()">Entendido</button>
+    </div>
+  </div>
+</div>
 
 <!-- Identity modal -->
 <div id="identity-modal" class="modal-overlay" onclick="handleModalClick(event)">
@@ -133,11 +152,11 @@
 
 <!-- Scripts: order matters (fixture → api → scoring → config → app) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="js/fixture.js?v=20260613-7"></script>
-<script src="js/api.js?v=20260613-7"></script>
-<script src="js/scoring.js?v=20260613-7"></script>
-<script src="js/config.js?v=20260613-7"></script>
-<script src="js/app.js?v=20260613-7"></script>
+<script src="js/fixture.js?v=20260613-8"></script>
+<script src="js/api.js?v=20260613-8"></script>
+<script src="js/scoring.js?v=20260613-8"></script>
+<script src="js/config.js?v=20260613-8"></script>
+<script src="js/app.js?v=20260613-8"></script>
 
 <script>
   // Populate scoring table dynamically

@@ -802,8 +802,22 @@ function showSpinner(containerId) {
   if (el) el.innerHTML = '<div class="spinner"></div>';
 }
 
+// ── Penalty modal ─────────────────────────────────────────────────────────────
+
+function closePenaltyModal(e) {
+  if (e && e.target !== document.getElementById('penalty-modal')) return;
+  document.getElementById('penalty-modal').style.display = 'none';
+  sessionStorage.setItem('penalty_seen', '1');
+}
+
+function maybeShowPenaltyModal() {
+  if (!sessionStorage.getItem('penalty_seen'))
+    document.getElementById('penalty-modal').style.display = 'flex';
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   switchView('leaderboard');
   init();
+  maybeShowPenaltyModal();
 });
