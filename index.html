@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Porra Escuadrón Boquerón</title>
-  <link rel="stylesheet" href="css/styles.css?v=20260613-9">
+  <link rel="stylesheet" href="css/styles.css?v=20260613-10">
 </head>
 <body>
 
@@ -91,6 +91,7 @@
   <button data-view="groups"      onclick="switchView('groups')">📊 Grupos</button>
   <button data-view="scoring"     onclick="switchView('scoring')">📋 Puntuación</button>
   <button data-view="evolution"   onclick="switchView('evolution')">📈 Evolución</button>
+  <button data-view="achievements" onclick="switchView('achievements')">🏅 Logros</button>
 </nav>
 
 <main>
@@ -148,15 +149,22 @@
     </div>
   </div>
 
+
+  <!-- Achievements -->
+  <div id="view-achievements" class="view">
+    <div id="achievements-list"><div class="spinner"></div></div>
+  </div>
+
 </main>
 
 <!-- Scripts: order matters (fixture → api → scoring → config → app) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="js/fixture.js?v=20260613-9"></script>
-<script src="js/api.js?v=20260613-9"></script>
-<script src="js/scoring.js?v=20260613-9"></script>
-<script src="js/config.js?v=20260613-9"></script>
-<script src="js/app.js?v=20260613-9"></script>
+<script src="js/fixture.js?v=20260613-10"></script>
+<script src="js/api.js?v=20260613-10"></script>
+<script src="js/scoring.js?v=20260613-10"></script>
+<script src="js/config.js?v=20260613-10"></script>
+<script src="js/achievements.js?v=20260613-10"></script>
+<script src="js/app.js?v=20260613-10"></script>
 
 <script>
   // Populate scoring table dynamically

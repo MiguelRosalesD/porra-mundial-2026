@@ -108,6 +108,7 @@ function submitIdentity() {
   setupIdentityPill();
   renderLeaderboard();
   if (detailTarget) renderDetail();
+  if (currentView === 'achievements') renderAchievementsView();
   maybeShowPenaltyModal();
 }
 
@@ -117,6 +118,7 @@ function logout() {
   setupIdentityPill();
   renderLeaderboard();
   if (detailTarget) renderDetail();
+  if (currentView === 'achievements') renderAchievementsView();
 }
 
 // ── Live stakes ───────────────────────────────────────────────────────────────
@@ -708,6 +710,52 @@ function computeGroupStandings(groupLetter) {
   );
 }
 
+// ── Group predictions comparison ──────────────────────────────────────────────
+
+function simulateGroupStandings(groupLetter, predictions) {
+  const teams = GROUPS[groupLetter].teams;
+  const stats = {};
+  for (const t of teams) stats[t] = { team: t, pts: 0, gf: 0, ga: 0 };
+  for (const match of GROUP_MATCHES.filter(m => m.group === groupLetter)) {
+    const pred = predictions?.[match.id];
+    if (!pred || pred.home == null) continue;
+    const h = match.home, a = match.away;
+    stats[h].gf += pred.home; stats[h].ga += pred.away;
+    stats[a].gf += pred.away; stats[a].ga += pred.home;
+    if (pred.home > pred.away)      stats[h].pts += 3;
+    else if (pred.away > pred.home) stats[a].pts += 3;
+    else                            { stats[h].pts += 1; stats[a].pts += 1; }
+  }
+  return Object.values(stats)
+    .sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf)
+    .map(s => s.team);
+}
+
+function groupPredictionsHtml(letter, actualStandings) {
+  const allFinished = GROUP_MATCHES
+    .filter(m => m.group === letter)
+    .every(m => resultsMap[m.id]?.finished);
+  if (!allFinished || !leaderboard.length) return '';
+
+  const actualOrder = actualStandings.map(s => s.team);
+  const rows = leaderboard.map(p => {
+    const predOrder = simulateGroupStandings(letter, p.predictions);
+    const cells = predOrder.map((team, i) => {
+      const actualPos = actualOrder.indexOf(team);
+      const ok = actualPos === i;
+      const shortName = team.replace('Bosnia and Herzegovina', 'Bosnia').replace('South Korea', 'Corea').replace('United States', 'EEUU').replace('Cape Verde', 'C.Verde').replace('New Zealand', 'N.Zelanda').replace('Saudi Arabia', 'Arabia S.').replace('Ivory Coast', 'M.Marfil').replace('DR Congo', 'R.D.Congo');
+      return `<span class="gp-team ${ok ? 'gp-ok' : 'gp-miss'}">${flag(team)}${shortName}</span>`;
+    });
+    return `<div class="gp-row"><span class="gp-name">${p.name}</span>${cells.join('')}</div>`;
+  }).join('');
+
+  return `<div class="gp-section">
+    <div class="gp-header">Pronósticos del grupo</div>
+    <div class="gp-actual-label">Real: ${actualOrder.map(t => flag(t)).join(' ')}</div>
+    ${rows}
+  </div>`;
+}
+
 // ── Groups view ───────────────────────────────────────────────────────────────
 
 function renderGroupsView() {
@@ -736,6 +784,7 @@ function renderGroupsView() {
         </span>
       </div>
       ${rows}
+      ${groupPredictionsHtml(letter, standings)}
     </div>`;
   }).join('');
 }
@@ -793,9 +842,10 @@ function switchView(view) {
   const btn = document.querySelector(`nav button[data-view="${view}"]`);
   if (btn) btn.classList.add('active');
 
-  if (view === 'matches')   renderMatchesView();
-  if (view === 'groups')    renderGroupsView();
-  if (view === 'evolution') renderEvolutionChart();
+  if (view === 'matches')      renderMatchesView();
+  if (view === 'groups')       renderGroupsView();
+  if (view === 'evolution')    renderEvolutionChart();
+  if (view === 'achievements') renderAchievementsView();
 }
 
 function showSpinner(containerId) {

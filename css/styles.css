@@ -890,6 +890,97 @@ main {
   margin-top: 10px;
 }
 
+/* ── Achievements ────────────────────────────────── */
+.ach-summary {
+  text-align: center;
+  font-size: .8rem;
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  padding: 10px;
+  background: var(--dark3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.ach-cat-title {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 20px 0 8px;
+}
+.ach-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ach-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  transition: border-color .2s;
+}
+.ach-card.unlocked { border-color: rgba(201,168,76,.4); background: rgba(201,168,76,.06); }
+.ach-card.locked   { opacity: .45; filter: grayscale(.6); }
+.ach-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+.ach-info { flex: 1; min-width: 0; }
+.ach-name { font-size: .78rem; font-weight: 700; color: var(--text); }
+.ach-card.locked .ach-name { color: var(--text-dim); }
+.ach-desc { font-size: .67rem; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+.ach-bar-wrap { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.ach-bar { flex: 1; height: 4px; background: var(--dark3); border-radius: 2px; overflow: hidden; }
+.ach-bar-fill { height: 100%; background: var(--border); border-radius: 2px; transition: width .4s; }
+.ach-bar-fill.done { background: var(--gold); }
+.ach-bar-label { font-size: .62rem; color: var(--text-dim); white-space: nowrap; }
+
+/* ── Group predictions comparison ────────────────── */
+.gp-section {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.gp-header {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.gp-actual-label {
+  font-size: .65rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.gp-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+  font-size: .65rem;
+}
+.gp-name {
+  width: 38px;
+  font-weight: 600;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+.gp-team {
+  flex: 1;
+  padding: 2px 3px;
+  border-radius: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gp-ok   { background: rgba(39,200,122,.18); color: #27c87a; }
+.gp-miss { background: rgba(224,82,82,.12);  color: #e05252; }
+
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 500px) {
   .lb-card { padding: 12px 12px; gap: 10px; }
