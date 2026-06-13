@@ -1,0 +1,470 @@
+// Main app: loads participants, fetches results, renders views
+
+let participants   = [];
+let resultsMap     = {};
+let leaderboard    = [];
+let currentView    = 'leaderboard';
+let detailTarget   = null;
+let selectedPlayer = localStorage.getItem('porra_identity') || null;
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+
+async function init() {
+  showSpinner('leaderboard-list');
+  try {
+    await loadParticipants();
+    setupIdentitySelector();
+    await refreshResults();
+    renderLeaderboard();
+    renderGroupsView();
+    scheduleRefresh();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('leaderboard-list').innerHTML =
+      '<p class="empty">Error cargando datos. Revisa la consola.</p>';
+  }
+}
+
+async function loadParticipants() {
+  const loaded = await Promise.all(
+    PARTICIPANT_FILES.map(f =>
+      fetch(f).then(r => r.json()).catch(() => null)
+    )
+  );
+  participants = loaded.filter(Boolean);
+}
+
+async function refreshResults() {
+  try {
+    const espn = await fetchAllResults();
+    resultsMap  = buildResultsMap(ALL_MATCHES, espn);
+    document.getElementById('last-updated').textContent =
+      'Actualizado: ' + new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    console.warn('No se pudo obtener resultados ESPN:', e);
+  }
+}
+
+function scheduleRefresh() {
+  const hasLive = ALL_MATCHES.some(m => resultsMap[m.id]?.live);
+  const delay   = hasLive ? 60_000 : 3 * 60_000;
+  setTimeout(async () => {
+    await refreshResults();
+    renderLeaderboard();
+    renderGroupsView();
+    if (currentView === 'matches') renderMatchesView();
+    if (detailTarget) renderDetail();
+    scheduleRefresh();
+  }, delay);
+}
+
+// ── Identity selector ─────────────────────────────────────────────────────────
+
+function setupIdentitySelector() {
+  const el = document.getElementById('identity-pill');
+  if (!el || !participants.length) return;
+
+  const names = ['Todos', ...participants.map(p => p.name)];
+  el.innerHTML = `
+    <span class="identity-label">Soy:</span>
+    <select class="identity-select" onchange="setIdentity(this.value)">
+      ${names.map(n =>
+        `<option value="${n}" ${(selectedPlayer || 'Todos') === n ? 'selected' : ''}>${n}</option>`
+      ).join('')}
+    </select>`;
+}
+
+function setIdentity(name) {
+  selectedPlayer = name === 'Todos' ? null : name;
+  if (selectedPlayer) localStorage.setItem('porra_identity', selectedPlayer);
+  else localStorage.removeItem('porra_identity');
+  renderLeaderboard();
+  if (detailTarget) renderDetail();
+}
+
+// ── Live stakes ───────────────────────────────────────────────────────────────
+
+function computeStakes(matchId, liveResult, round) {
+  const h = liveResult.homeScore ?? 0;
+  const a = liveResult.awayScore ?? 0;
+  return participants.map(p => {
+    const pred   = p.predictions?.[matchId];
+    const now    = scoreMatch(pred, liveResult, round);
+    const ifHome = scoreMatch(pred, { ...liveResult, homeScore: h + 1 }, round);
+    const ifAway = scoreMatch(pred, { ...liveResult, awayScore: a + 1 }, round);
+    return { name: p.name, pred, now, ifHome, ifAway };
+  });
+}
+
+function predLabel(pred) {
+  if (!pred) return '–';
+  if (pred.winner != null) return pred.winner;
+  if (pred.home != null)   return `${pred.home}‑${pred.away}`;
+  return '–';
+}
+
+function diffCell(val, base) {
+  if (val > base) return `<span class="stakes-up">▲${val}</span>`;
+  if (val < base) return `<span class="stakes-dn">▼${val}</span>`;
+  return `<span>${val}</span>`;
+}
+
+function generateMessages(stakes, homeTeam, awayTeam, h, a) {
+  const msgs = [];
+
+  const exactNow = stakes.filter(s =>
+    s.pred?.home != null && Number(s.pred.home) === h && Number(s.pred.away) === a
+  );
+  if (exactNow.length) {
+    const n = exactNow.map(s => s.name).join(' y ');
+    msgs.push(`🎯 ${n} ${exactNow.length > 1 ? 'tienen' : 'tiene'} el resultado exacto ahora mismo`);
+  }
+
+  const homeBenefits = stakes.filter(s => s.ifHome > s.now);
+  if (homeBenefits.length) {
+    const n = homeBenefits.map(s => s.name).join(' y ');
+    msgs.push(`⚡ Gol de ${homeTeam}: ${n} ${homeBenefits.length > 1 ? 'ganan' : 'gana'} más puntos`);
+  }
+
+  const homeLoses = stakes.filter(s => s.ifHome < s.now && s.now > 0);
+  if (homeLoses.length) {
+    const n = homeLoses.map(s => s.name).join(' y ');
+    msgs.push(`😰 ${n} ${homeLoses.length > 1 ? 'piden' : 'pide'} que no marque ${homeTeam}`);
+  }
+
+  const awayBenefits = stakes.filter(s => s.ifAway > s.now);
+  if (awayBenefits.length) {
+    const n = awayBenefits.map(s => s.name).join(' y ');
+    msgs.push(`⚡ Gol de ${awayTeam}: ${n} ${awayBenefits.length > 1 ? 'ganan' : 'gana'} más puntos`);
+  }
+
+  const awayLoses = stakes.filter(s => s.ifAway < s.now && s.now > 0);
+  if (awayLoses.length) {
+    const n = awayLoses.map(s => s.name).join(' y ');
+    msgs.push(`😰 ${n} ${awayLoses.length > 1 ? 'piden' : 'pide'} que no marque ${awayTeam}`);
+  }
+
+  return msgs;
+}
+
+function renderLivePanel() {
+  const panel = document.getElementById('live-panel');
+  if (!panel) return;
+
+  const liveMatches = ALL_MATCHES.filter(m => resultsMap[m.id]?.live);
+  if (!liveMatches.length) { panel.innerHTML = ''; return; }
+
+  panel.innerHTML = liveMatches.map(match => {
+    const result = resultsMap[match.id];
+    const round  = match.group ? 'group' : match.round;
+    const home   = result.homeTeam || match.home || '?';
+    const away   = result.awayTeam || match.away || '?';
+    const h      = result.homeScore ?? 0;
+    const a      = result.awayScore ?? 0;
+    const stakes = computeStakes(match.id, result, round);
+    const msgs   = generateMessages(stakes, home, away, h, a);
+
+    const clockStr = result.status === 'STATUS_HALFTIME' ? 'Descanso'
+                   : result.clock ? result.clock : 'En juego';
+
+    const rows = stakes.map(s => `
+      <tr>
+        <td class="sname">${s.name}</td>
+        <td class="spred">${predLabel(s.pred)}</td>
+        <td class="snow">${s.now}<span class="pts-label"> pts</span></td>
+        <td class="sgoal">${diffCell(s.ifHome, s.now)}</td>
+        <td class="sgoal">${diffCell(s.ifAway, s.now)}</td>
+      </tr>`).join('');
+
+    return `
+    <div class="live-card">
+      <div class="live-card-header">
+        <span class="live-dot-wrap"><span class="live-dot"></span>EN VIVO</span>
+        <div class="live-main-score">
+          <span class="live-team home-team">${flag(home)}<span>${home}</span></span>
+          <span class="live-scorebox">${h} &ndash; ${a}</span>
+          <span class="live-team away-team"><span>${away}</span>${flag(away)}</span>
+        </div>
+        <span class="live-clock">${clockStr}</span>
+      </div>
+      <div class="stakes-wrap">
+        <table class="stakes-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Pronóstico</th>
+              <th>Ahora</th>
+              <th>+gol ${flag(home)}</th>
+              <th>+gol ${flag(away)}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      ${msgs.length ? `<div class="live-msgs">${msgs.map(m => `<div class="live-msg">${m}</div>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Leaderboard ──────────────────────────────────────────────────────────────
+
+function renderLeaderboard() {
+  renderLivePanel();
+  leaderboard = buildLeaderboard(participants, resultsMap);
+  const maxScore = leaderboard[0]?.score || 1;
+  const el = document.getElementById('leaderboard-list');
+  if (!leaderboard.length) {
+    el.innerHTML = '<p class="empty">Añade participantes en la carpeta participants/</p>';
+    return;
+  }
+
+  el.innerHTML = leaderboard.map((p, i) => {
+    const exactCount = Object.entries(p.breakdown).filter(([matchId, pts]) => {
+      const match = ALL_MATCHES.find(m => m.id === matchId);
+      const round = match?.group ? 'group' : match?.round;
+      return pts === (SCORING[round] || SCORING.group)[1];
+    }).length;
+    const hitCount = Object.keys(p.breakdown).length;
+    const pct = maxScore > 0 ? (p.score / maxScore * 100).toFixed(0) : 0;
+
+    return `
+    <div class="lb-card" onclick="showDetail('${p.name}')">
+      <div class="lb-rank rank-${i + 1}">${rankEmoji(i + 1)}</div>
+      <div class="lb-avatar">${p.name[0].toUpperCase()}</div>
+      <div class="lb-info">
+        <div class="lb-name">${p.name}</div>
+        <div class="lb-stats">${hitCount} aciertos · ${exactCount} exactos</div>
+        <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="lb-score">${p.score}<span>pts</span></div>
+    </div>`;
+  }).join('');
+}
+
+function rankEmoji(n) {
+  if (n === 1) return '🥇';
+  if (n === 2) return '🥈';
+  if (n === 3) return '🥉';
+  return n;
+}
+
+// ── Participant detail ────────────────────────────────────────────────────────
+
+function showDetail(name) {
+  detailTarget = leaderboard.find(p => p.name === name);
+  if (!detailTarget) return;
+  switchView('detail');
+  renderDetail();
+}
+
+function renderDetail() {
+  const p = detailTarget;
+  const el = document.getElementById('detail-content');
+
+  let html = `
+    <button class="back-btn" onclick="switchView('leaderboard')">← Volver</button>
+    <div class="detail-header">
+      <div class="detail-avatar">${p.name[0].toUpperCase()}</div>
+      <div>
+        <div style="font-size:1.2rem;font-weight:700">${p.name}</div>
+        <div style="font-size:.8rem;color:var(--text-dim)">${Object.keys(p.breakdown).length} aciertos</div>
+      </div>
+      <div class="detail-score-big">${p.score} <span style="font-size:.9rem;color:var(--text-dim)">pts</span></div>
+    </div>`;
+
+  const rounds = [
+    { key: 'group', matches: GROUP_MATCHES },
+    { key: 'R32',   matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R32') },
+    { key: 'R16',   matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R16') },
+    { key: 'QF',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'QF') },
+    { key: 'SF',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'SF') },
+    { key: '3RD',   matches: KNOCKOUT_MATCHES.filter(m => m.round === '3RD') },
+    { key: 'FN',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'FN') },
+  ];
+
+  for (const { key, matches } of rounds) {
+    const relevant = matches.filter(m => resultsMap[m.id] || p.predictions?.[m.id]);
+    if (!relevant.length) continue;
+    html += `<div class="section-title">${ROUND_LABELS[key] || key}</div>`;
+    for (const match of relevant) {
+      html += renderDetailMatchRow(match, p, key);
+    }
+  }
+
+  el.innerHTML = html;
+}
+
+// Returns true if we should show this participant's prediction for this match
+function canSeePrediction(participantName, match) {
+  if (!selectedPlayer || selectedPlayer === participantName) return true;
+  const result = resultsMap[match.id];
+  return !!(result?.finished || result?.live);
+}
+
+function renderDetailMatchRow(match, participant, round) {
+  const result  = resultsMap[match.id];
+  const pred    = participant.predictions?.[match.id];
+  const pts     = participant.breakdown[match.id] || 0;
+  const home    = match.home || '?';
+  const away    = match.away || '?';
+  const visible = canSeePrediction(participant.name, match);
+
+  let resultStr;
+  if (result?.finished) {
+    resultStr = `<span class="score-box">${result.homeScore} <span class="score-sep">-</span> ${result.awayScore}</span>`;
+  } else if (result?.live) {
+    resultStr = `<span class="score-box score-live"><span class="live-dot-sm"></span>${result.homeScore} <span class="score-sep">-</span> ${result.awayScore}</span>`;
+  } else {
+    resultStr = '<span style="color:var(--text-dim);font-size:.8rem">Pendiente</span>';
+  }
+
+  let predStr;
+  if (!visible) {
+    predStr = '<span class="pred-hidden" title="Se revela cuando empiece el partido">🔒</span>';
+  } else if (pred) {
+    const label = pred.winner != null
+      ? pred.winner
+      : (pred.home != null ? `${pred.home}-${pred.away}` : '–');
+    predStr = `<span class="score-box" style="background:var(--dark2);font-size:.85rem">${label}</span>`;
+  } else {
+    predStr = '<span style="color:var(--text-dim);font-size:.75rem">–</span>';
+  }
+
+  let badge = '';
+  if (pts > 0 && visible) {
+    const [, exactPts] = SCORING[round] || SCORING.group;
+    badge = pts === exactPts
+      ? `<span class="pts-badge exact">+${pts} EXACTO</span>`
+      : `<span class="pts-badge half">+${pts}</span>`;
+  }
+
+  return `
+  <div class="match-row">
+    <div class="match-team home">${home}<span class="team-flag">${flag(home)}</span></div>
+    <div class="match-score">
+      ${resultStr}
+      <div class="match-date">Pronóstico: ${predStr}${badge}</div>
+    </div>
+    <div class="match-team away"><span class="team-flag">${flag(away)}</span>${away}</div>
+  </div>`;
+}
+
+// ── Group standings ────────────────────────────────────────────────────────────
+
+function computeGroupStandings(groupLetter) {
+  const teams = GROUPS[groupLetter].teams;
+  const stats = {};
+  for (const t of teams) {
+    stats[t] = { team: t, pts: 0, gf: 0, ga: 0, gd: 0, played: 0 };
+  }
+
+  for (const match of GROUP_MATCHES.filter(m => m.group === groupLetter)) {
+    const r = resultsMap[match.id];
+    if (!r || r.homeScore === null) continue;
+    const h = match.home, a = match.away;
+    stats[h].gf += r.homeScore; stats[h].ga += r.awayScore; stats[h].played++;
+    stats[a].gf += r.awayScore; stats[a].ga += r.homeScore; stats[a].played++;
+    if (r.homeScore > r.awayScore)       { stats[h].pts += 3; }
+    else if (r.homeScore < r.awayScore)  { stats[a].pts += 3; }
+    else                                 { stats[h].pts += 1; stats[a].pts += 1; }
+  }
+
+  for (const t of teams) stats[t].gd = stats[t].gf - stats[t].ga;
+
+  return Object.values(stats).sort((a, b) =>
+    b.pts - a.pts || b.gd - a.gd || b.gf - a.gf
+  );
+}
+
+// ── Groups view ───────────────────────────────────────────────────────────────
+
+function renderGroupsView() {
+  const el = document.getElementById('groups-grid');
+  el.innerHTML = Object.entries(GROUPS).map(([letter]) => {
+    const standings = computeGroupStandings(letter);
+    const rows = standings.map((s, i) => {
+      const posClass = i < 2 ? 'qualify' : i === 2 ? 'third' : '';
+      const gdStr = s.gd > 0 ? `+${s.gd}` : `${s.gd}`;
+      return `
+      <div class="group-team-row">
+        <span class="standing-pos ${posClass}">${i + 1}</span>
+        <span class="team-flag">${flag(s.team)}</span>
+        <span class="standing-name">${s.team.replace('Bosnia and Herzegovina', 'Bosnia-Herz.')}</span>
+        <span class="standing-val standing-pts">${s.pts}</span>
+        <span class="standing-val standing-gd">${s.played ? gdStr : '–'}</span>
+      </div>`;
+    }).join('');
+    return `
+    <div class="group-card">
+      <div class="group-card-header">
+        Grupo ${letter}
+        <span class="group-header-cols">
+          <span class="group-col">Pts</span>
+          <span class="group-col">DG</span>
+        </span>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+// ── Matches view ─────────────────────────────────────────────────────────────
+
+function renderMatchesView() {
+  const el = document.getElementById('matches-list');
+  let html = '';
+  let lastGroup = null;
+
+  for (const match of GROUP_MATCHES) {
+    if (match.group !== lastGroup) {
+      html += `<div class="section-title">Grupo ${match.group}</div>`;
+      lastGroup = match.group;
+    }
+    const result = resultsMap[match.id];
+    const liveIndicator = result?.live
+      ? `<span class="live-dot-sm"></span>`
+      : '';
+    const scoreH = result?.homeScore != null ? result.homeScore : '–';
+    const scoreA = result?.awayScore != null ? result.awayScore : '–';
+    const boxClass = result?.live ? 'score-box score-live' : 'score-box';
+    html += `
+    <div class="match-row">
+      <div class="match-team home">${match.home}<span class="team-flag">${flag(match.home)}</span></div>
+      <div class="match-score">
+        <span class="${boxClass}">${liveIndicator}${scoreH} <span class="score-sep">:</span> ${scoreA}</span>
+        <div class="match-date">${match.date}</div>
+      </div>
+      <div class="match-team away"><span class="team-flag">${flag(match.away)}</span>${match.away}</div>
+    </div>`;
+  }
+
+  el.innerHTML = html || '<p class="empty">Sin partidos disponibles</p>';
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.add('active');
+
+  const btn = document.querySelector(`nav button[data-view="${view}"]`);
+  if (btn) btn.classList.add('active');
+
+  if (view === 'matches') renderMatchesView();
+  if (view === 'groups')  renderGroupsView();
+}
+
+function showSpinner(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) el.innerHTML = '<div class="spinner"></div>';
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  switchView('leaderboard');
+  init();
+});

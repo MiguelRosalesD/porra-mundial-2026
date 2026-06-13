@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porra Mundial 2026 🏆</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header>
+  <svg class="header-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Mundial 2026">
+    <defs>
+      <linearGradient id="gld" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#f5d070"/>
+        <stop offset="100%" stop-color="#b8892a"/>
+      </linearGradient>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1c2a4a"/>
+        <stop offset="100%" stop-color="#0a0e1a"/>
+      </linearGradient>
+    </defs>
+    <!-- Shield outer -->
+    <path d="M32 2 L58 12 L58 36 Q58 56 32 62 Q6 56 6 36 L6 12 Z" fill="url(#gld)"/>
+    <!-- Shield inner -->
+    <path d="M32 6 L54 15 L54 36 Q54 53 32 58 Q10 53 10 36 L10 15 Z" fill="url(#bg)"/>
+    <!-- Trophy cup body -->
+    <path d="M24 20 Q24 32 32 34 Q40 32 40 20 Z" fill="none" stroke="url(#gld)" stroke-width="1.8" stroke-linejoin="round"/>
+    <!-- Trophy handles -->
+    <path d="M24 22 Q19 22 19 27 Q19 32 24 32" fill="none" stroke="url(#gld)" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M40 22 Q45 22 45 27 Q45 32 40 32" fill="none" stroke="url(#gld)" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Trophy stem -->
+    <line x1="32" y1="34" x2="32" y2="39" stroke="url(#gld)" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Trophy base -->
+    <rect x="26" y="39" width="12" height="2.5" rx="1.2" fill="url(#gld)"/>
+    <!-- Stars -->
+    <text x="32" y="52" font-family="Arial" font-size="8" fill="#c9a84c" text-anchor="middle">★ ★ ★</text>
+    <!-- Year label on ribbon at bottom of shield -->
+    <text x="32" y="60" font-family="Arial Black, sans-serif" font-size="5.5" font-weight="900" fill="#f0c96a" text-anchor="middle" letter-spacing="0.5">2026</text>
+  </svg>
+  <div class="header-text">
+    <h1>Porra Mundial 2026</h1>
+    <p>Canada · México · Estados Unidos</p>
+  </div>
+  <div class="header-right">
+    <div id="last-updated">Actualizando…</div>
+    <div id="identity-pill"></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Clasificación</button>
+  <button data-view="matches"     onclick="switchView('matches')">⚽ Partidos</button>
+  <button data-view="groups"      onclick="switchView('groups')">📊 Grupos</button>
+  <button data-view="scoring"     onclick="switchView('scoring')">📋 Puntuación</button>
+</nav>
+
+<main>
+
+  <!-- Leaderboard -->
+  <div id="view-leaderboard" class="view active">
+    <div id="live-panel"></div>
+    <div id="leaderboard-list"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Participant detail (no nav tab, opened from leaderboard) -->
+  <div id="view-detail" class="view">
+    <div id="detail-content"></div>
+  </div>
+
+  <!-- Matches -->
+  <div id="view-matches" class="view">
+    <div id="matches-list"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Groups -->
+  <div id="view-groups" class="view">
+    <div id="groups-grid" class="groups-grid"></div>
+  </div>
+
+  <!-- Scoring rules -->
+  <div id="view-scoring" class="view">
+    <div class="section-title">Sistema de puntuación</div>
+    <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+      <thead>
+        <tr style="color:var(--text-dim);font-size:.75rem;text-transform:uppercase;letter-spacing:1px">
+          <th style="padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)">Ronda</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:1px solid var(--border)">1X2 / Ganador</th>
+          <th style="padding:10px 14px;text-align:center;border-bottom:1px solid var(--border)">Resultado exacto</th>
+        </tr>
+      </thead>
+      <tbody id="scoring-table"></tbody>
+    </table>
+
+    <div class="section-title" style="margin-top:28px">Cómo se calculan los puntos</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;font-size:.88rem;line-height:1.7;color:var(--text-dim)">
+      <p><strong style="color:var(--text)">Resultado exacto</strong> — aciertas el marcador gol a gol (ej: predices 2-1, acaba 2-1). Otorga los puntos máximos.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">1X2 / Ganador</strong> — aciertas quién gana o si hay empate, pero no el marcador exacto. En eliminatorias, basta con predecir al equipo que avanza.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Puntuación progresiva</strong> — cada ronda vale más para mantener la emoción hasta el final.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- Scripts: order matters (fixture → api → scoring → config → app) -->
+<script src="js/fixture.js"></script>
+<script src="js/api.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  // Populate scoring table dynamically
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.getElementById('scoring-table');
+    const roundOrder = ['group', 'R32', 'R16', 'QF', 'SF', '3RD', 'FN'];
+    tbody.innerHTML = roundOrder.map(r => {
+      const [w, e] = SCORING[r];
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px 14px">${ROUND_LABELS[r]}</td>
+        <td style="padding:10px 14px;text-align:center;color:var(--yellow);font-weight:700">${w} pts</td>
+        <td style="padding:10px 14px;text-align:center;color:var(--green);font-weight:700">${e} pts</td>
+      </tr>`;
+    }).join('');
+  });
+</script>
+
+</body>
+</html>
