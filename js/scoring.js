@@ -39,8 +39,10 @@ function scoreMatch(prediction, result, round) {
 function scoreParticipant(participant, allResults) {
   let total = 0;
   const breakdown = {};
+  const scoreFrom = participant.scoreFrom || null;
 
   for (const match of ALL_MATCHES) {
+    if (scoreFrom && match.date && match.date < scoreFrom) continue;
     const round = match.group ? 'group' : match.round;
     const prediction = participant.predictions?.[match.id];
     const result = allResults[match.id];
