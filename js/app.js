@@ -332,7 +332,9 @@ function renderDetail() {
 
 // Returns true if we should show this participant's prediction for this match
 function canSeePrediction(participantName, match) {
-  if (!selectedPlayer || selectedPlayer === participantName) return true;
+  if (!selectedPlayer) return false;
+  if (selectedPlayer === participantName) return true;
+
   const result = resultsMap[match.id];
   return !!(result?.finished || result?.live);
 }
