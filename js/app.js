@@ -13,7 +13,7 @@ async function init() {
   showSpinner('leaderboard-list');
   try {
     await loadParticipants();
-    setupIdentitySelector();
+    setupIdentityPill();
     await refreshResults();
     renderLeaderboard();
     renderGroupsView();
@@ -58,26 +58,61 @@ function scheduleRefresh() {
   }, delay);
 }
 
-// ── Identity selector ─────────────────────────────────────────────────────────
+// ── Identity (PIN-protected) ──────────────────────────────────────────────────
 
-function setupIdentitySelector() {
+function setupIdentityPill() {
   const el = document.getElementById('identity-pill');
-  if (!el || !participants.length) return;
-
-  const names = ['Todos', ...participants.map(p => p.name)];
-  el.innerHTML = `
-    <span class="identity-label">Soy:</span>
-    <select class="identity-select" onchange="setIdentity(this.value)">
-      ${names.map(n =>
-        `<option value="${n}" ${(selectedPlayer || 'Todos') === n ? 'selected' : ''}>${n}</option>`
-      ).join('')}
-    </select>`;
+  if (!el) return;
+  if (selectedPlayer) {
+    el.innerHTML = `
+      <span class="identity-active">● ${selectedPlayer}</span>
+      <button class="identity-logout" onclick="logout()" title="Cerrar sesión">✕</button>`;
+  } else {
+    el.innerHTML = `<button class="identity-btn" onclick="showIdentityModal()">Identifícate</button>`;
+  }
 }
 
-function setIdentity(name) {
-  selectedPlayer = name === 'Todos' ? null : name;
-  if (selectedPlayer) localStorage.setItem('porra_identity', selectedPlayer);
-  else localStorage.removeItem('porra_identity');
+function showIdentityModal() {
+  const sel = document.getElementById('modal-name-select');
+  sel.innerHTML = participants.map(p =>
+    `<option value="${p.name}">${p.name}</option>`
+  ).join('');
+  document.getElementById('modal-pin').value = '';
+  document.getElementById('modal-error').textContent = '';
+  document.getElementById('identity-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('modal-pin').focus(), 50);
+}
+
+function hideIdentityModal() {
+  document.getElementById('identity-modal').style.display = 'none';
+}
+
+function handleModalClick(e) {
+  if (e.target === document.getElementById('identity-modal')) hideIdentityModal();
+}
+
+function submitIdentity() {
+  const name = document.getElementById('modal-name-select').value;
+  const pin  = document.getElementById('modal-pin').value.trim();
+  const p    = participants.find(p => p.name === name);
+  if (!p?.pin || p.pin !== pin) {
+    document.getElementById('modal-error').textContent = 'PIN incorrecto';
+    document.getElementById('modal-pin').value = '';
+    document.getElementById('modal-pin').focus();
+    return;
+  }
+  selectedPlayer = name;
+  localStorage.setItem('porra_identity', name);
+  hideIdentityModal();
+  setupIdentityPill();
+  renderLeaderboard();
+  if (detailTarget) renderDetail();
+}
+
+function logout() {
+  selectedPlayer = null;
+  localStorage.removeItem('porra_identity');
+  setupIdentityPill();
   renderLeaderboard();
   if (detailTarget) renderDetail();
 }
@@ -167,14 +202,29 @@ function renderLivePanel() {
     const clockStr = result.status === 'STATUS_HALFTIME' ? 'Descanso'
                    : result.clock ? result.clock : 'En juego';
 
-    const rows = stakes.map(s => `
-      <tr>
-        <td class="sname">${s.name}</td>
-        <td class="spred">${predLabel(s.pred)}</td>
-        <td class="snow">${s.now}<span class="pts-label"> pts</span></td>
-        <td class="sgoal">${diffCell(s.ifHome, s.now)}</td>
-        <td class="sgoal">${diffCell(s.ifAway, s.now)}</td>
-      </tr>`).join('');
+    const stakeSection = selectedPlayer
+      ? (() => {
+          const rows = stakes.map(s => `
+            <tr>
+              <td class="sname">${s.name}</td>
+              <td class="spred">${predLabel(s.pred)}</td>
+              <td class="snow">${s.now}<span class="pts-label"> pts</span></td>
+              <td class="sgoal">${diffCell(s.ifHome, s.now)}</td>
+              <td class="sgoal">${diffCell(s.ifAway, s.now)}</td>
+            </tr>`).join('');
+          return `
+          <div class="stakes-wrap">
+            <table class="stakes-table">
+              <thead><tr>
+                <th></th><th>Pronóstico</th><th>Ahora</th>
+                <th>+gol ${flag(home)}</th><th>+gol ${flag(away)}</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${msgs.length ? `<div class="live-msgs">${msgs.map(m => `<div class="live-msg">${m}</div>`).join('')}</div>` : ''}`;
+        })()
+      : `<div class="live-locked"><button class="identity-btn" onclick="showIdentityModal()">Identifícate para ver las apuestas</button></div>`;
 
     return `
     <div class="live-card">
@@ -187,21 +237,7 @@ function renderLivePanel() {
         </div>
         <span class="live-clock">${clockStr}</span>
       </div>
-      <div class="stakes-wrap">
-        <table class="stakes-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Pronóstico</th>
-              <th>Ahora</th>
-              <th>+gol ${flag(home)}</th>
-              <th>+gol ${flag(away)}</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      ${msgs.length ? `<div class="live-msgs">${msgs.map(m => `<div class="live-msg">${m}</div>`).join('')}</div>` : ''}
+      ${stakeSection}
     </div>`;
   }).join('');
 }

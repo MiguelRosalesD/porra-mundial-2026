@@ -48,6 +48,21 @@
   </div>
 </header>
 
+<!-- Identity modal -->
+<div id="identity-modal" class="modal-overlay" onclick="handleModalClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">¿Quién eres?</div>
+    <select id="modal-name-select" class="modal-select"></select>
+    <input id="modal-pin" type="password" class="modal-pin" placeholder="PIN" maxlength="8"
+           onkeydown="if(event.key==='Enter')submitIdentity()">
+    <div id="modal-error" class="modal-error"></div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="hideIdentityModal()">Cancelar</button>
+      <button class="modal-btn-enter" onclick="submitIdentity()">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <nav>
   <button class="active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Clasificación</button>
   <button data-view="matches"     onclick="switchView('matches')">⚽ Partidos</button>
