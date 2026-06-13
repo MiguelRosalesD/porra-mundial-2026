@@ -604,23 +604,37 @@ function renderDetail() {
       <div class="detail-score-big">${p.score} <span style="font-size:.9rem;color:var(--text-dim)">pts</span></div>
     </div>`;
 
-  const rounds = [
-    { key: 'group', matches: GROUP_MATCHES },
-    { key: 'R32',   matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R32') },
-    { key: 'R16',   matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R16') },
-    { key: 'QF',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'QF') },
-    { key: 'SF',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'SF') },
-    { key: '3RD',   matches: KNOCKOUT_MATCHES.filter(m => m.round === '3RD') },
-    { key: 'FN',    matches: KNOCKOUT_MATCHES.filter(m => m.round === 'FN') },
-  ];
+  // Group stage: sorted by date with day headers
+  const groupSorted = [...GROUP_MATCHES]
+    .filter(m => resultsMap[m.id] || p.predictions?.[m.id])
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id));
 
-  for (const { key, matches } of rounds) {
+  let lastDate = null;
+  for (const match of groupSorted) {
+    if (match.date !== lastDate) {
+      const label = match.date
+        ? new Date(match.date + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+        : 'Fecha por confirmar';
+      html += `<div class="section-title" style="text-transform:capitalize">${label}</div>`;
+      lastDate = match.date;
+    }
+    html += renderDetailMatchRow(match, p, 'group');
+  }
+
+  // Knockout rounds: grouped by round
+  const knockoutRounds = [
+    { key: 'R32', matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R32') },
+    { key: 'R16', matches: KNOCKOUT_MATCHES.filter(m => m.round === 'R16') },
+    { key: 'QF',  matches: KNOCKOUT_MATCHES.filter(m => m.round === 'QF') },
+    { key: 'SF',  matches: KNOCKOUT_MATCHES.filter(m => m.round === 'SF') },
+    { key: '3RD', matches: KNOCKOUT_MATCHES.filter(m => m.round === '3RD') },
+    { key: 'FN',  matches: KNOCKOUT_MATCHES.filter(m => m.round === 'FN') },
+  ];
+  for (const { key, matches } of knockoutRounds) {
     const relevant = matches.filter(m => resultsMap[m.id] || p.predictions?.[m.id]);
     if (!relevant.length) continue;
     html += `<div class="section-title">${ROUND_LABELS[key] || key}</div>`;
-    for (const match of relevant) {
-      html += renderDetailMatchRow(match, p, key);
-    }
+    for (const match of relevant) html += renderDetailMatchRow(match, p, key);
   }
 
   el.innerHTML = html;
