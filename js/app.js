@@ -52,7 +52,8 @@ function scheduleRefresh() {
     await refreshResults();
     renderLeaderboard();
     renderGroupsView();
-    if (currentView === 'matches') renderMatchesView();
+    if (currentView === 'matches')   renderMatchesView();
+    if (currentView === 'evolution') renderEvolutionChart();
     if (detailTarget) renderDetail();
     scheduleRefresh();
   }, delay);
@@ -242,10 +243,209 @@ function renderLivePanel() {
   }).join('');
 }
 
+// ── Engagement features ───────────────────────────────────────────────────────
+
+const CHART_COLORS = ['#c9a84c', '#4a8fe8', '#27c87a', '#e05252', '#9b59b6', '#f39c12'];
+let evolutionChart = null;
+
+function finishedMatchesSorted() {
+  return ALL_MATCHES
+    .filter(m => m.home && m.away && resultsMap[m.id]?.finished)
+    .sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id.localeCompare(b.id));
+}
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+
+function computeBadges(participant) {
+  const finished = finishedMatchesSorted();
+  if (!finished.length) return [];
+
+  const badges = [];
+
+  // Current streak (from most recent match backwards)
+  let winStreak = 0, lossStreak = 0;
+  for (let i = finished.length - 1; i >= 0; i--) {
+    const pts = participant.breakdown[finished[i].id] || 0;
+    if (winStreak === 0 && lossStreak === 0) {
+      pts > 0 ? winStreak++ : lossStreak++;
+    } else if (winStreak > 0 && pts > 0) {
+      winStreak++;
+    } else if (lossStreak > 0 && pts === 0) {
+      lossStreak++;
+    } else {
+      break;
+    }
+  }
+
+  if (winStreak >= 3)  badges.push({ icon: '🔥', label: `${winStreak} seguidos` });
+  if (lossStreak >= 3) badges.push({ icon: '🧊', label: `${lossStreak} sin puntuar` });
+
+  // Total exact scores
+  const exactCount = finished.filter(m => {
+    const round    = m.group ? 'group' : m.round;
+    const exactPts = (SCORING[round] || SCORING.group)[1];
+    return (participant.breakdown[m.id] || 0) === exactPts;
+  }).length;
+
+  if (exactCount >= 3) badges.push({ icon: '🎯', label: `${exactCount} exactos` });
+
+  return badges.slice(0, 3);
+}
+
+// ── Highlight card ────────────────────────────────────────────────────────────
+
+function renderHighlightCard() {
+  const el = document.getElementById('highlight-card');
+  if (!el) return;
+
+  const finished = finishedMatchesSorted();
+  if (!finished.length) { el.innerHTML = ''; return; }
+
+  // Group by date, pick the most recent
+  const byDate = {};
+  finished.forEach(m => {
+    const d = m.date || '';
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(m);
+  });
+  const latestDate = Object.keys(byDate).sort().pop();
+  const dayMatches = byDate[latestDate];
+
+  // Collect all exact predictions from that day
+  const exactHits = [];
+  for (const match of dayMatches) {
+    const round    = match.group ? 'group' : match.round;
+    const exactPts = (SCORING[round] || SCORING.group)[1];
+    const result   = resultsMap[match.id];
+    for (const p of leaderboard) {
+      if ((p.breakdown[match.id] || 0) === exactPts) {
+        exactHits.push({ name: p.name, match, pred: p.predictions?.[match.id], result });
+      }
+    }
+  }
+
+  // Fall back to best 1x2 hits if no exacts
+  const hits = exactHits.length ? exactHits : (() => {
+    const h = [];
+    for (const match of dayMatches) {
+      const result = resultsMap[match.id];
+      for (const p of leaderboard) {
+        if ((p.breakdown[match.id] || 0) > 0) h.push({ name: p.name, match, pred: p.predictions?.[match.id], result });
+      }
+    }
+    return h;
+  })();
+
+  if (!hits.length) { el.innerHTML = ''; return; }
+
+  const isExact = exactHits.length > 0;
+  const fmtDate = new Date(latestDate + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+
+  const rows = hits.map(h => {
+    const predLabel = h.pred?.home != null ? `${h.pred.home}-${h.pred.away}` : (h.pred?.winner || '?');
+    const resultLabel = `${h.result.homeScore}-${h.result.awayScore}`;
+    return `
+    <div class="highlight-row">
+      <span class="hl-avatar">${h.name[0].toUpperCase()}</span>
+      <span class="hl-name">${h.name}</span>
+      <span class="hl-pred">${predLabel}</span>
+      <span class="hl-sep">·</span>
+      <span class="hl-teams">${flag(h.match.home)}${flag(h.match.away)}</span>
+      <span class="hl-match">${h.match.home} ${resultLabel} ${h.match.away}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+  <div class="highlight-card">
+    <div class="highlight-header">
+      <span>${isExact ? '⭐ Exactos' : '✅ Aciertos'} del ${fmtDate}</span>
+    </div>
+    <div class="highlight-rows">${rows}</div>
+  </div>`;
+}
+
+// ── Evolution chart ───────────────────────────────────────────────────────────
+
+function renderEvolutionChart() {
+  const canvas = document.getElementById('evolution-canvas');
+  if (!canvas || !leaderboard.length) return;
+
+  const finished = finishedMatchesSorted();
+
+  if (!finished.length) {
+    canvas.closest('.chart-container').innerHTML =
+      '<p class="empty">Los resultados aparecerán aquí cuando empiece el torneo</p>';
+    return;
+  }
+
+  const labels = finished.map(m => {
+    const r = resultsMap[m.id];
+    const h = (m.home || '?').slice(0, 3).toUpperCase();
+    const a = (m.away || '?').slice(0, 3).toUpperCase();
+    return `${h} ${r.homeScore}-${r.awayScore} ${a}`;
+  });
+
+  const datasets = leaderboard.map((p, i) => {
+    let running = 0;
+    return {
+      label: p.name,
+      data: finished.map(m => { running += (p.breakdown[m.id] || 0); return running; }),
+      borderColor: CHART_COLORS[i % CHART_COLORS.length],
+      backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '18',
+      tension: 0.35,
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      borderWidth: 2.5,
+      fill: false,
+    };
+  });
+
+  const chartData = { labels, datasets };
+
+  if (evolutionChart) {
+    evolutionChart.data = chartData;
+    evolutionChart.update();
+    return;
+  }
+
+  evolutionChart = new Chart(canvas, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#e8eaf0', font: { size: 13 }, padding: 20 } },
+        tooltip: {
+          backgroundColor: '#1a2236',
+          borderColor: '#2a3a5c',
+          borderWidth: 1,
+          titleColor: '#e8eaf0',
+          bodyColor: '#8898b8',
+          padding: 12,
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: '#8898b8', maxRotation: 55, font: { size: 9 } },
+          grid: { color: '#1c2640' },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#8898b8', stepSize: 1 },
+          grid: { color: '#1c2640' },
+        },
+      },
+    },
+  });
+}
+
 // ── Leaderboard ──────────────────────────────────────────────────────────────
 
 function renderLeaderboard() {
   renderLivePanel();
+  renderHighlightCard();
   leaderboard = buildLeaderboard(participants, resultsMap);
   const maxScore = leaderboard[0]?.score || 1;
   const el = document.getElementById('leaderboard-list');
@@ -261,7 +461,11 @@ function renderLeaderboard() {
       return pts === (SCORING[round] || SCORING.group)[1];
     }).length;
     const hitCount = Object.keys(p.breakdown).length;
-    const pct = maxScore > 0 ? (p.score / maxScore * 100).toFixed(0) : 0;
+    const pct      = maxScore > 0 ? (p.score / maxScore * 100).toFixed(0) : 0;
+    const badges   = computeBadges(p);
+    const badgeHtml = badges.length
+      ? `<div class="badge-row">${badges.map(b => `<span class="badge">${b.icon} ${b.label}</span>`).join('')}</div>`
+      : '';
 
     return `
     <div class="lb-card" onclick="showDetail('${p.name}')">
@@ -270,6 +474,7 @@ function renderLeaderboard() {
       <div class="lb-info">
         <div class="lb-name">${p.name}</div>
         <div class="lb-stats">${hitCount} aciertos · ${exactCount} exactos</div>
+        ${badgeHtml}
         <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
       </div>
       <div class="lb-score">${p.score}<span>pts</span></div>
@@ -492,8 +697,9 @@ function switchView(view) {
   const btn = document.querySelector(`nav button[data-view="${view}"]`);
   if (btn) btn.classList.add('active');
 
-  if (view === 'matches') renderMatchesView();
-  if (view === 'groups')  renderGroupsView();
+  if (view === 'matches')   renderMatchesView();
+  if (view === 'groups')    renderGroupsView();
+  if (view === 'evolution') renderEvolutionChart();
 }
 
 function showSpinner(containerId) {

@@ -697,6 +697,90 @@ main {
   gap: 4px;
 }
 
+/* ── Badges ──────────────────────────────────────── */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.badge {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: .68rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Highlight card ──────────────────────────────── */
+.highlight-card {
+  background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.04));
+  border: 1px solid rgba(201,168,76,.35);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.highlight-header {
+  padding: 8px 14px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold-lt);
+  border-bottom: 1px solid rgba(201,168,76,.2);
+}
+
+.highlight-rows { padding: 6px 0; }
+
+.highlight-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  font-size: .85rem;
+}
+
+.hl-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hl-name  { font-weight: 700; min-width: 46px; }
+.hl-pred  { font-family: monospace; color: var(--green); font-weight: 700; font-size: .9rem; }
+.hl-sep   { color: var(--border); }
+.hl-teams { display: flex; gap: 2px; }
+.hl-match { color: var(--text-dim); font-size: .78rem; flex: 1; }
+
+/* ── Evolution chart ─────────────────────────────── */
+.chart-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 16px 12px;
+  height: 380px;
+  position: relative;
+}
+
+.chart-hint {
+  font-size: .72rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 10px;
+}
+
 /* ── Responsive ─────────────────────────────────── */
 @media (max-width: 500px) {
   .lb-card { padding: 12px 12px; gap: 10px; }
