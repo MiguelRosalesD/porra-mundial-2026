@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Porra Escuadrón Boquerón</title>
-  <link rel="stylesheet" href="css/styles.css?v=20260613-2">
+  <title>Porra EscuadrÃ³n BoquerÃ³n</title>
+  <link rel="stylesheet" href="css/styles.css?v=20260613-3">
 </head>
 <body>
 
@@ -37,16 +37,16 @@
     <!-- Trophy base -->
     <rect x="26" y="39" width="12" height="2.5" rx="1.2" fill="url(#gld)"/>
     <!-- Stars -->
-    <text x="32" y="52" font-family="Arial" font-size="8" fill="#c9a84c" text-anchor="middle">★ ★ ★</text>
+    <text x="32" y="52" font-family="Arial" font-size="8" fill="#c9a84c" text-anchor="middle">â˜… â˜… â˜…</text>
     <!-- Year label on ribbon at bottom of shield -->
     <text x="32" y="60" font-family="Arial Black, sans-serif" font-size="5.5" font-weight="900" fill="#f0c96a" text-anchor="middle" letter-spacing="0.5">2026</text>
   </svg>
   <div class="header-text">
-    <h1>Porra Escuadrón Boquerón</h1>
-    <p>Canada · México · Estados Unidos</p>
+    <h1>Porra EscuadrÃ³n BoquerÃ³n</h1>
+    <p>Canada Â· MÃ©xico Â· Estados Unidos</p>
   </div>
   <div class="header-right">
-    <div id="last-updated">Actualizando…</div>
+    <div id="last-updated">Actualizandoâ€¦</div>
     <div id="identity-pill"></div>
   </div>
 </header>
@@ -54,7 +54,7 @@
 <!-- Identity modal -->
 <div id="identity-modal" class="modal-overlay" onclick="handleModalClick(event)">
   <div class="modal-box">
-    <div class="modal-title">¿Quién eres?</div>
+    <div class="modal-title">Â¿QuiÃ©n eres?</div>
     <select id="modal-name-select" class="modal-select"></select>
     <input id="modal-pin" type="password" class="modal-pin" placeholder="PIN" maxlength="8"
            onkeydown="if(event.key==='Enter')submitIdentity()">
@@ -67,11 +67,11 @@
 </div>
 
 <nav>
-  <button class="active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Clasificación</button>
-  <button data-view="matches"     onclick="switchView('matches')">⚽ Partidos</button>
-  <button data-view="groups"      onclick="switchView('groups')">📊 Grupos</button>
-  <button data-view="scoring"     onclick="switchView('scoring')">📋 Puntuación</button>
-  <button data-view="evolution"   onclick="switchView('evolution')">📈 Evolución</button>
+  <button class="active" data-view="leaderboard" onclick="switchView('leaderboard')">ðŸ† ClasificaciÃ³n</button>
+  <button data-view="matches"     onclick="switchView('matches')">âš½ Partidos</button>
+  <button data-view="groups"      onclick="switchView('groups')">ðŸ“Š Grupos</button>
+  <button data-view="scoring"     onclick="switchView('scoring')">ðŸ“‹ PuntuaciÃ³n</button>
+  <button data-view="evolution"   onclick="switchView('evolution')">ðŸ“ˆ EvoluciÃ³n</button>
 </nav>
 
 <main>
@@ -100,16 +100,16 @@
 
   <!-- Evolution chart -->
   <div id="view-evolution" class="view">
-    <div class="section-title">Evolución de la clasificación</div>
+    <div class="section-title">EvoluciÃ³n de la clasificaciÃ³n</div>
     <div class="chart-container">
       <canvas id="evolution-canvas"></canvas>
     </div>
-    <p class="chart-hint">Cada punto del eje X es un partido jugado · Pasa el cursor para ver detalles</p>
+    <p class="chart-hint">Cada punto del eje X es un partido jugado Â· Pasa el cursor para ver detalles</p>
   </div>
 
   <!-- Scoring rules -->
   <div id="view-scoring" class="view">
-    <div class="section-title">Sistema de puntuación</div>
+    <div class="section-title">Sistema de puntuaciÃ³n</div>
     <table style="width:100%;border-collapse:collapse;font-size:.9rem">
       <thead>
         <tr style="color:var(--text-dim);font-size:.75rem;text-transform:uppercase;letter-spacing:1px">
@@ -121,23 +121,23 @@
       <tbody id="scoring-table"></tbody>
     </table>
 
-    <div class="section-title" style="margin-top:28px">Cómo se calculan los puntos</div>
+    <div class="section-title" style="margin-top:28px">CÃ³mo se calculan los puntos</div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;font-size:.88rem;line-height:1.7;color:var(--text-dim)">
-      <p><strong style="color:var(--text)">Resultado exacto</strong> — aciertas el marcador gol a gol (ej: predices 2-1, acaba 2-1). Otorga los puntos máximos.</p>
-      <p style="margin-top:8px"><strong style="color:var(--text)">1X2 / Ganador</strong> — aciertas quién gana o si hay empate, pero no el marcador exacto. En eliminatorias, basta con predecir al equipo que avanza.</p>
-      <p style="margin-top:8px"><strong style="color:var(--text)">Puntuación progresiva</strong> — cada ronda vale más para mantener la emoción hasta el final.</p>
+      <p><strong style="color:var(--text)">Resultado exacto</strong> â€” aciertas el marcador gol a gol (ej: predices 2-1, acaba 2-1). Otorga los puntos mÃ¡ximos.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">1X2 / Ganador</strong> â€” aciertas quiÃ©n gana o si hay empate, pero no el marcador exacto. En eliminatorias, basta con predecir al equipo que avanza.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">PuntuaciÃ³n progresiva</strong> â€” cada ronda vale mÃ¡s para mantener la emociÃ³n hasta el final.</p>
     </div>
   </div>
 
 </main>
 
-<!-- Scripts: order matters (fixture → api → scoring → config → app) -->
+<!-- Scripts: order matters (fixture â†’ api â†’ scoring â†’ config â†’ app) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="js/fixture.js?v=20260613-2"></script>
-<script src="js/api.js?v=20260613-2"></script>
-<script src="js/scoring.js?v=20260613-2"></script>
-<script src="js/config.js?v=20260613-2"></script>
-<script src="js/app.js?v=20260613-2"></script>
+<script src="js/fixture.js?v=20260613-3"></script>
+<script src="js/api.js?v=20260613-3"></script>
+<script src="js/scoring.js?v=20260613-3"></script>
+<script src="js/config.js?v=20260613-3"></script>
+<script src="js/app.js?v=20260613-3"></script>
 
 <script>
   // Populate scoring table dynamically

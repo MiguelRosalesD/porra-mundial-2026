@@ -256,40 +256,54 @@ function finishedMatchesSorted() {
 
 // ── Badges ────────────────────────────────────────────────────────────────────
 
-function computeBadges(participant) {
+function computeBadges(participant, rank, total) {
   const finished = finishedMatchesSorted();
-  if (!finished.length) return [];
-
   const badges = [];
 
-  // Current streak (from most recent match backwards)
+  // ── Position ────────────────────────────────────────────────────────────────
+  if (finished.length && rank === 1)
+    badges.push({ icon: '👑', label: 'Líder', cls: 'badge-leader' });
+  if (finished.length && rank === total && total > 1)
+    badges.push({ icon: '🪣', label: 'Farolillo rojo', cls: 'badge-last' });
+
+  if (!finished.length) return badges;
+
+  // ── Exact scores & chaos ────────────────────────────────────────────────────
+  let exactCount = 0, chaosExact = false;
+  for (const m of finished) {
+    const round    = m.group ? 'group' : m.round;
+    const exactPts = (SCORING[round] || SCORING.group)[1];
+    if ((participant.breakdown[m.id] || 0) === exactPts) {
+      exactCount++;
+      const pred = participant.predictions?.[m.id];
+      if (pred?.home != null && (pred.home + pred.away) >= 5) chaosExact = true;
+    }
+  }
+  if (exactCount >= 8)       badges.push({ icon: '🔮', label: `Oráculo · ${exactCount} exactos`,  cls: 'badge-oracle' });
+  else if (exactCount >= 3)  badges.push({ icon: '🎯', label: `Francotirador · ${exactCount}`,     cls: 'badge-achievement' });
+  if (chaosExact)            badges.push({ icon: '🎪', label: 'Adivino del caos',                  cls: 'badge-special' });
+
+  // ── Hit rate ─────────────────────────────────────────────────────────────────
+  const hits = Object.values(participant.breakdown).filter(p => p > 0).length;
+  if (finished.length >= 10 && hits / finished.length >= 0.65)
+    badges.push({ icon: '💪', label: 'Fiable', cls: 'badge-achievement' });
+
+  // ── Current streak ───────────────────────────────────────────────────────────
   let winStreak = 0, lossStreak = 0;
   for (let i = finished.length - 1; i >= 0; i--) {
     const pts = participant.breakdown[finished[i].id] || 0;
     if (winStreak === 0 && lossStreak === 0) {
       pts > 0 ? winStreak++ : lossStreak++;
-    } else if (winStreak > 0 && pts > 0) {
-      winStreak++;
-    } else if (lossStreak > 0 && pts === 0) {
-      lossStreak++;
-    } else {
-      break;
-    }
+    } else if (winStreak > 0 && pts > 0) winStreak++;
+    else if (lossStreak > 0 && pts === 0) lossStreak++;
+    else break;
   }
+  if (winStreak  >= 5)  badges.push({ icon: '🔥', label: `En llamas · ${winStreak}`,     cls: 'badge-fire' });
+  else if (winStreak  >= 3) badges.push({ icon: '🔥', label: `Racha · ${winStreak}`,      cls: 'badge-fire' });
+  if (lossStreak >= 5)  badges.push({ icon: '🥶', label: `Heladera · ${lossStreak}`,      cls: 'badge-ice' });
+  else if (lossStreak >= 3) badges.push({ icon: '🧊', label: `Frío · ${lossStreak}`,      cls: 'badge-ice' });
 
-  if (winStreak >= 3)  badges.push({ icon: '🔥', label: `${winStreak} seguidos` });
-  if (lossStreak >= 3) badges.push({ icon: '🧊', label: `${lossStreak} sin puntuar` });
-
-  // Total exact scores
-  const exactCount = finished.filter(m => {
-    const round    = m.group ? 'group' : m.round;
-    const exactPts = (SCORING[round] || SCORING.group)[1];
-    return (participant.breakdown[m.id] || 0) === exactPts;
-  }).length;
-
-  if (exactCount >= 3) badges.push({ icon: '🎯', label: `${exactCount} exactos` });
-
-  return badges.slice(0, 3);
+  return badges.slice(0, 4);
 }
 
 // ── Highlight card ────────────────────────────────────────────────────────────
@@ -462,9 +476,9 @@ function renderLeaderboard() {
     }).length;
     const hitCount = Object.keys(p.breakdown).length;
     const pct      = maxScore > 0 ? (p.score / maxScore * 100).toFixed(0) : 0;
-    const badges   = computeBadges(p);
+    const badges   = computeBadges(p, i + 1, leaderboard.length);
     const badgeHtml = badges.length
-      ? `<div class="badge-row">${badges.map(b => `<span class="badge">${b.icon} ${b.label}</span>`).join('')}</div>`
+      ? `<div class="badge-row">${badges.map(b => `<span class="badge ${b.cls || ''}">${b.icon} ${b.label}</span>`).join('')}</div>`
       : '';
 
     return `

@@ -715,6 +715,13 @@ main {
   color: var(--text-dim);
   white-space: nowrap;
 }
+.badge-leader      { background: rgba(201,168,76,.18); border-color: rgba(201,168,76,.5); color: #f0c96a; }
+.badge-last        { background: rgba(224,82,82,.12);  border-color: rgba(224,82,82,.35); color: #e05252; }
+.badge-oracle      { background: rgba(155,89,182,.2);  border-color: rgba(155,89,182,.5); color: #c39bd3; }
+.badge-achievement { background: rgba(74,143,232,.15); border-color: rgba(74,143,232,.4); color: #7ab3f0; }
+.badge-special     { background: rgba(39,200,122,.12); border-color: rgba(39,200,122,.35); color: #27c87a; }
+.badge-fire        { background: rgba(243,156,18,.15); border-color: rgba(243,156,18,.4); color: #f39c12; }
+.badge-ice         { background: rgba(100,180,255,.12); border-color: rgba(100,180,255,.35); color: #7ab8f5; }
 
 /* ── Highlight card ──────────────────────────────── */
 .highlight-card {
