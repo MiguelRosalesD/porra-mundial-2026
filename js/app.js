@@ -247,6 +247,79 @@ function renderLivePanel() {
 
 const CHART_COLORS = ['#c9a84c', '#4a8fe8', '#27c87a', '#e05252', '#9b59b6', '#f39c12'];
 let evolutionChart = null;
+let positionDeltas = {};
+
+// ── Position deltas ───────────────────────────────────────────────────────────
+
+function updatePositionDeltas() {
+  const finishedCount = finishedMatchesSorted().length;
+  const currentPositions = {};
+  leaderboard.forEach((p, i) => { currentPositions[p.name] = i + 1; });
+
+  const stored = JSON.parse(localStorage.getItem('porra_pos_data') || 'null');
+
+  if (!stored) {
+    localStorage.setItem('porra_pos_data', JSON.stringify({ positions: currentPositions, finishedCount, deltas: {} }));
+    positionDeltas = {};
+    return;
+  }
+
+  if (finishedCount > stored.finishedCount) {
+    const newDeltas = {};
+    for (const name of Object.keys(currentPositions)) {
+      const prev = stored.positions[name];
+      if (prev != null) newDeltas[name] = prev - currentPositions[name]; // positive = moved up
+    }
+    localStorage.setItem('porra_pos_data', JSON.stringify({ positions: currentPositions, finishedCount, deltas: newDeltas }));
+    positionDeltas = newDeltas;
+  } else {
+    positionDeltas = stored.deltas || {};
+  }
+}
+
+function deltaHtml(name) {
+  const d = positionDeltas[name];
+  if (!d) return '';
+  if (d > 0) return `<span class="pos-delta up">▲${d}</span>`;
+  return `<span class="pos-delta dn">▼${Math.abs(d)}</span>`;
+}
+
+// ── Consensus predictions ─────────────────────────────────────────────────────
+
+function computeConsensus(matchId) {
+  let home = 0, draw = 0, away = 0, total = 0;
+  for (const p of participants) {
+    const pred = p.predictions?.[matchId];
+    if (!pred || pred.home == null) continue;
+    total++;
+    const h = parseInt(pred.home), a = parseInt(pred.away);
+    if (h > a) home++;
+    else if (a > h) away++;
+    else draw++;
+  }
+  return total ? { home, draw, away, total } : null;
+}
+
+function consensusHtml(matchId, homeTeam, awayTeam) {
+  const c = computeConsensus(matchId);
+  if (!c) return '';
+  const pHome = Math.round(c.home / c.total * 100);
+  const pDraw = Math.round(c.draw / c.total * 100);
+  const pAway = 100 - pHome - pDraw;
+  const segs = [
+    pHome ? `<span class="cons-seg cons-home" style="width:${pHome}%">${pHome}%</span>` : '',
+    pDraw ? `<span class="cons-seg cons-draw" style="width:${pDraw}%">${pDraw}%</span>` : '',
+    pAway ? `<span class="cons-seg cons-away" style="width:${pAway}%">${pAway}%</span>` : '',
+  ].join('');
+  return `<div class="consensus-wrap">
+    <div class="consensus-bar" title="${homeTeam} ${pHome}% · Empate ${pDraw}% · ${awayTeam} ${pAway}%">${segs}</div>
+    <div class="consensus-labels">
+      <span>${flag(homeTeam)} ${pHome}%</span>
+      ${pDraw ? `<span>Empate ${pDraw}%</span>` : ''}
+      <span>${pAway}% ${flag(awayTeam)}</span>
+    </div>
+  </div>`;
+}
 
 function finishedMatchesSorted() {
   return ALL_MATCHES
@@ -461,6 +534,7 @@ function renderLeaderboard() {
   renderLivePanel();
   renderHighlightCard();
   leaderboard = buildLeaderboard(participants, resultsMap);
+  updatePositionDeltas();
   const maxScore = leaderboard[0]?.score || 1;
   const el = document.getElementById('leaderboard-list');
   if (!leaderboard.length) {
@@ -483,7 +557,7 @@ function renderLeaderboard() {
 
     return `
     <div class="lb-card" onclick="showDetail('${p.name}')">
-      <div class="lb-rank rank-${i + 1}">${rankEmoji(i + 1)}</div>
+      <div class="lb-rank rank-${i + 1}">${rankEmoji(i + 1)}${deltaHtml(p.name)}</div>
       <div class="lb-avatar">${p.name[0].toUpperCase()}</div>
       <div class="lb-info">
         <div class="lb-name">${p.name}</div>
@@ -684,12 +758,14 @@ function renderMatchesView() {
     const scoreH = result?.homeScore != null ? result.homeScore : '–';
     const scoreA = result?.awayScore != null ? result.awayScore : '–';
     const boxClass = result?.live ? 'score-box score-live' : 'score-box';
+    const pending = !result?.finished && !result?.live;
     html += `
     <div class="match-row">
       <div class="match-team home">${match.home}<span class="team-flag">${flag(match.home)}</span></div>
       <div class="match-score">
         <span class="${boxClass}">${liveIndicator}${scoreH} <span class="score-sep">:</span> ${scoreA}</span>
         <div class="match-date">${match.date}</div>
+        ${pending ? consensusHtml(match.id, match.home, match.away) : ''}
       </div>
       <div class="match-team away"><span class="team-flag">${flag(match.away)}</span>${match.away}</div>
     </div>`;

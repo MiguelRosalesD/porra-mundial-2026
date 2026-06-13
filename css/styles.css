@@ -723,6 +723,50 @@ main {
 .badge-fire        { background: rgba(243,156,18,.15); border-color: rgba(243,156,18,.4); color: #f39c12; }
 .badge-ice         { background: rgba(100,180,255,.12); border-color: rgba(100,180,255,.35); color: #7ab8f5; }
 
+/* ── Position delta ──────────────────────────────── */
+.pos-delta {
+  display: inline-block;
+  font-size: .6rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 8px;
+  margin-left: 4px;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+.pos-delta.up { background: rgba(39,200,122,.2); color: #27c87a; }
+.pos-delta.dn { background: rgba(224,82,82,.18); color: #e05252; }
+
+/* ── Consensus bar ───────────────────────────────── */
+.consensus-wrap {
+  margin-top: 6px;
+}
+.consensus-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  gap: 1px;
+}
+.cons-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  border-radius: 2px;
+  transition: width .3s;
+}
+.cons-home { background: rgba(74,143,232,.7); }
+.cons-draw { background: rgba(201,168,76,.7); }
+.cons-away { background: rgba(224,82,82,.7); }
+.consensus-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: .65rem;
+  color: var(--text-dim);
+  margin-top: 3px;
+}
+
 /* ── Highlight card ──────────────────────────────── */
 .highlight-card {
   background: linear-gradient(135deg, rgba(201,168,76,.12), rgba(201,168,76,.04));
