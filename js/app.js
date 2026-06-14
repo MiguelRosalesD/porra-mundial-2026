@@ -149,39 +149,103 @@ function diffCell(val, base) {
   return `<span>${val}</span>`;
 }
 
+const TEAM_FLAVOR = {
+  'Mexico':                 ['mexicano',      'el tequila'],
+  'South Africa':           ['sudafricano',   'Nelson Mandela'],
+  'South Korea':            ['coreano',       'el kimchi'],
+  'Czechia':                ['checo',         'la cerveza Pilsner'],
+  'Canada':                 ['canadiense',    'el sirope de arce'],
+  'Bosnia and Herzegovina': ['bosnio',        'el ćevapi'],
+  'Qatar':                  ['catarí',        'el aire acondicionado en el desierto'],
+  'Switzerland':            ['suizo',         'un reloj de cuco'],
+  'Brazil':                 ['brasileño',     'el carnaval de Río'],
+  'Morocco':                ['marroquí',      'el cuscús'],
+  'Haiti':                  ['haitiano',      'el vudú'],
+  'Scotland':               ['escocés',       'el whisky de malta'],
+  'United States':          ['americano',     'las hamburguesas'],
+  'Paraguay':               ['paraguayo',     'el mate'],
+  'Australia':              ['australiano',   'el canguro'],
+  'Turkey':                 ['turco',         'el kebab'],
+  'Germany':                ['alemán',        'las salchichas'],
+  'Ivory Coast':            ['marfileño',     'el chocolate negro'],
+  'Ecuador':                ['ecuatoriano',   'las Islas Galápagos'],
+  'Netherlands':            ['holandés',      'los tulipanes'],
+  'Japan':                  ['japonés',       'el sushi'],
+  'Sweden':                 ['sueco',         'el IKEA'],
+  'Tunisia':                ['tunecino',      'el harissa'],
+  'Belgium':                ['belga',         'el chocolate'],
+  'Egypt':                  ['egipcio',       'las pirámides'],
+  'Iran':                   ['iraní',         'la alfombra persa'],
+  'New Zealand':            ['neozelandés',   'El Señor de los Anillos'],
+  'Spain':                  ['español',       'el jamón'],
+  'Cape Verde':             ['caboverdiano',  'estar en medio del Atlántico'],
+  'Saudi Arabia':           ['saudí',         'el petróleo'],
+  'Uruguay':                ['uruguayo',      'el mate'],
+  'France':                 ['francés',       'el croissant'],
+  'Senegal':                ['senegalés',     'el baobab'],
+  'Iraq':                   ['iraquí',        'Las Mil y Una Noches'],
+  'Norway':                 ['noruego',       'los fiordos'],
+  'Argentina':              ['argentino',     'el asado'],
+  'Algeria':                ['argelino',      'el Sahara'],
+  'Austria':                ['austriaco',     'Mozart'],
+  'Jordan':                 ['jordano',       'Petra'],
+  'Portugal':               ['portugués',     'un pastel de nata'],
+  'DR Congo':               ['congoleño',     'el río Congo'],
+  'Uzbekistan':             ['uzbeko',        'la Ruta de la Seda'],
+  'Colombia':               ['colombiano',    'el café de Juan Valdez'],
+  'England':                ['inglés',        'el fish and chips'],
+  'Croatia':                ['croata',        'haber inventado la corbata'],
+  'Ghana':                  ['ghanés',        'el cacao'],
+  'Panama':                 ['panameño',      'el Canal de Panamá'],
+};
+
+function pickMsg(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function goalMsg(name, team) {
+  if (team === 'Curacao') return '¿Dónde coño está Curazao?';
+  const f = TEAM_FLAVOR[team];
+  if (!f) return `${name} necesita que marque ${team}`;
+  return `${name} es más ${f[0]} que ${f[1]}`;
+}
+
 function generateMessages(stakes, homeTeam, awayTeam, h, a) {
   const msgs = [];
 
-  const exactNow = stakes.filter(s =>
-    s.pred?.home != null && Number(s.pred.home) === h && Number(s.pred.away) === a
-  );
-  if (exactNow.length) {
-    const n = exactNow.map(s => s.name).join(' y ');
-    msgs.push(`🎯 ${n} ${exactNow.length > 1 ? 'tienen' : 'tiene'} el resultado exacto ahora mismo`);
+  if (homeTeam === 'Curacao' || awayTeam === 'Curacao') {
+    msgs.push('¿Dónde coño está Curazao?');
   }
 
-  const homeBenefits = stakes.filter(s => s.ifHome > s.now);
-  if (homeBenefits.length) {
-    const n = homeBenefits.map(s => s.name).join(' y ');
-    msgs.push(`⚡ Gol de ${homeTeam}: ${n} ${homeBenefits.length > 1 ? 'ganan' : 'gana'} más puntos`);
-  }
+  for (const s of stakes) {
+    const isExact = s.pred?.home != null
+      && Number(s.pred.home) === h && Number(s.pred.away) === a;
+    const impossible = s.now === 0 && s.ifHome === 0 && s.ifAway === 0;
 
-  const homeLoses = stakes.filter(s => s.ifHome < s.now && s.now > 0);
-  if (homeLoses.length) {
-    const n = homeLoses.map(s => s.name).join(' y ');
-    msgs.push(`😰 ${n} ${homeLoses.length > 1 ? 'piden' : 'pide'} que no marque ${homeTeam}`);
-  }
-
-  const awayBenefits = stakes.filter(s => s.ifAway > s.now);
-  if (awayBenefits.length) {
-    const n = awayBenefits.map(s => s.name).join(' y ');
-    msgs.push(`⚡ Gol de ${awayTeam}: ${n} ${awayBenefits.length > 1 ? 'ganan' : 'gana'} más puntos`);
-  }
-
-  const awayLoses = stakes.filter(s => s.ifAway < s.now && s.now > 0);
-  if (awayLoses.length) {
-    const n = awayLoses.map(s => s.name).join(' y ');
-    msgs.push(`😰 ${n} ${awayLoses.length > 1 ? 'piden' : 'pide'} que no marque ${awayTeam}`);
+    let msg;
+    if (isExact) {
+      msg = pickMsg([
+        `${s.name}: ¡ARBI PITA YA!`,
+        `${s.name} está pidiendo la hora`,
+        `${s.name}: El pescado está vendido`,
+      ]);
+    } else if (impossible) {
+      msg = pickMsg([
+        `${s.name}: Fuck...`,
+        `${s.name} se ha fumado un porrito`,
+        `${s.name} ya ha apagado la televisión`,
+        `${s.name} es el Maldini de hacendado`,
+      ]);
+    } else if (s.now > 0) {
+      msg = pickMsg([
+        `${s.name}: Messirve`,
+        `${s.name}: No es lo que esperaba, pero estoy contento`,
+      ]);
+    } else {
+      const team = s.ifHome >= s.ifAway ? homeTeam : awayTeam;
+      msg = goalMsg(s.name, team);
+    }
+    if (msg) msgs.push(msg);
   }
 
   return msgs;
@@ -226,10 +290,13 @@ function renderLivePanel() {
               </tr></thead>
               <tbody>${rows}</tbody>
             </table>
-          </div>
-          ${msgs.length ? `<div class="live-msgs">${msgs.map(m => `<div class="live-msg">${m}</div>`).join('')}</div>` : ''}`;
+          </div>`;
         })()
       : `<div class="live-locked"><button class="identity-btn" onclick="showIdentityModal()">Identifícate para ver las apuestas</button></div>`;
+
+    const msgsHtml = msgs.length
+      ? `<div class="live-msgs">${msgs.map(m => `<div class="live-msg">${m}</div>`).join('')}</div>`
+      : '';
 
     return `
     <div class="live-card">
@@ -243,6 +310,7 @@ function renderLivePanel() {
         <span class="live-clock">${clockStr}</span>
       </div>
       ${stakeSection}
+      ${msgsHtml}
     </div>`;
   }).join('');
 }
