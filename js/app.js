@@ -126,11 +126,12 @@ function logout() {
 function computeStakes(matchId, liveResult, round) {
   const h = liveResult.homeScore ?? 0;
   const a = liveResult.awayScore ?? 0;
+  const safe = { ...liveResult, homeScore: h, awayScore: a };
   return participants.map(p => {
     const pred   = p.predictions?.[matchId];
-    const now    = scoreMatch(pred, liveResult, round);
-    const ifHome = scoreMatch(pred, { ...liveResult, homeScore: h + 1 }, round);
-    const ifAway = scoreMatch(pred, { ...liveResult, awayScore: a + 1 }, round);
+    const now    = scoreMatch(pred, safe, round);
+    const ifHome = scoreMatch(pred, { ...safe, homeScore: h + 1 }, round);
+    const ifAway = scoreMatch(pred, { ...safe, awayScore: a + 1 }, round);
     return { name: p.name, pred, now, ifHome, ifAway };
   });
 }
@@ -211,7 +212,7 @@ function renderLivePanel() {
           const rows = stakes.map(s => `
             <tr>
               <td class="sname">${s.name}</td>
-              <td class="spred">${predLabel(s.pred)}</td>
+              <td class="spred">${s.name === selectedPlayer ? predLabel(s.pred) : '<span class="pred-hidden" title="Se revela al acabar">🔒</span>'}</td>
               <td class="snow">${s.now}<span class="pts-label"> pts</span></td>
               <td class="sgoal">${diffCell(s.ifHome, s.now)}</td>
               <td class="sgoal">${diffCell(s.ifAway, s.now)}</td>
@@ -646,7 +647,7 @@ function canSeePrediction(participantName, match) {
   if (selectedPlayer === participantName) return true;
 
   const result = resultsMap[match.id];
-  return !!(result?.finished || result?.live);
+  return !!(result?.finished);
 }
 
 function renderDetailMatchRow(match, participant, round) {

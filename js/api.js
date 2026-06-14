@@ -48,7 +48,7 @@ function espnEventToResult(event) {
   const status   = event.status?.type?.name;
   const finished = ['STATUS_FINAL', 'STATUS_FULL_TIME', 'STATUS_FT', 'STATUS_FULL_PEN'].includes(status)
                    || event.status?.type?.completed === true;
-  const live     = ['STATUS_IN_PROGRESS', 'STATUS_HALFTIME', 'STATUS_END_PERIOD'].includes(status);
+  const live     = ['STATUS_IN_PROGRESS', 'STATUS_FIRST_HALF', 'STATUS_SECOND_HALF', 'STATUS_HALFTIME', 'STATUS_END_PERIOD', 'STATUS_EXTRA_TIME', 'STATUS_PENALTIES'].includes(status);
   const clock    = event.status?.displayClock || '';
   const period   = event.status?.period || 0;
 
