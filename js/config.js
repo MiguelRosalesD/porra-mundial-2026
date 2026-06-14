@@ -4,4 +4,5 @@ const PARTICIPANT_FILES = [
   'participants/fran.json',
   'participants/raul.json',
   'participants/juan.json',
+  'participants/yhon.json',
 ];
