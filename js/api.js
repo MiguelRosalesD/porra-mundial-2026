@@ -2,7 +2,7 @@
 // No API key required. Results are cached in sessionStorage for 5 minutes.
 
 const ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world';
-const CACHE_TTL = 5 * 60 * 1000; // 5 min
+const CACHE_TTL = 2 * 60 * 1000; // 2 min
 
 // ── Name normalisation ────────────────────────────────────────────────────────
 // ESPN uses its own display names; map them to our canonical English names.

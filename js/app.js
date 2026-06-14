@@ -534,10 +534,10 @@ function renderEvolutionChart() {
 // ── Leaderboard ──────────────────────────────────────────────────────────────
 
 function renderLeaderboard() {
-  renderLivePanel();
-  renderHighlightCard();
   leaderboard = buildLeaderboard(participants, resultsMap);
   updatePositionDeltas();
+  renderLivePanel();
+  renderHighlightCard();
   const maxScore = leaderboard[0]?.score || 1;
   const el = document.getElementById('leaderboard-list');
   if (!leaderboard.length) {
