@@ -1,6 +1,7 @@
 {
   "name": "Raul",
   "pin": "6767",
+  "r32Submitted": false,
   "predictions": {
     "M55": {
       "home": 2,
@@ -291,10 +292,15 @@
       "away": 0
     },
     "R02": {
-      "winner": "Germany"
+      "home": 2,
+      "away": 1
     },
     "R05": {
       "winner": "Senegal"
+    },
+    "R01": {
+      "home": 0,
+      "away": 2
     }
   }
 }

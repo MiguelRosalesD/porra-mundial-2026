@@ -70,6 +70,23 @@
   </div>
 </div>
 
+<!-- News / announcements modal (multi-slide) -->
+<div id="news-modal" class="modal-overlay" onclick="handleNewsModalClick(event)">
+  <div class="modal-box news-box">
+    <div class="news-dots" id="news-dots"></div>
+    <div class="news-header">
+      <div class="news-icon" id="news-icon"></div>
+      <div class="news-title" id="news-title"></div>
+    </div>
+    <div class="news-body" id="news-body"></div>
+    <div class="news-visual" id="news-visual"></div>
+    <div class="news-footer">
+      <button class="modal-btn-cancel" id="news-prev-btn" onclick="newsPrev()">← Anterior</button>
+      <button class="modal-btn-enter" id="news-next-btn" onclick="newsNext()">Siguiente →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Identity modal -->
 <div id="identity-modal" class="modal-overlay" onclick="handleModalClick(event)">
   <div class="modal-box">
@@ -88,7 +105,7 @@
 <nav>
   <button class="active" data-view="leaderboard" onclick="switchView('leaderboard')">🏆 Clasificación</button>
   <button data-view="matches"     onclick="switchView('matches')">⚽ Partidos</button>
-  <button data-view="groups"      onclick="switchView('groups')">📊 Grupos</button>
+  <button data-view="groups"      onclick="switchView('groups')">🏆 Eliminatorias</button>
   <button data-view="scoring"     onclick="switchView('scoring')">📋 Puntuación</button>
   <button data-view="evolution"   onclick="switchView('evolution')">📈 Evolución</button>
   <button data-view="achievements" onclick="switchView('achievements')">🏅 Logros</button>
@@ -113,9 +130,9 @@
     <div id="matches-list"><div class="spinner"></div></div>
   </div>
 
-  <!-- Groups -->
+  <!-- Bracket (knockout stage) -->
   <div id="view-groups" class="view">
-    <div id="groups-grid" class="groups-grid"></div>
+    <div id="bracket-container"></div>
   </div>
 
   <!-- Evolution chart -->
@@ -149,6 +166,11 @@
     </div>
   </div>
 
+  <!-- Prediction form (Round of 32) -- opened from the news modal, not a nav tab -->
+  <div id="view-predict" class="view">
+    <div id="predict-container"></div>
+  </div>
+
 
   <!-- Achievements -->
   <div id="view-achievements" class="view">
@@ -156,6 +178,8 @@
   </div>
 
 </main>
+
+<footer class="site-footer">🥚 Próximamente: evento Gianni Infantino...</footer>
 
 <!-- Scripts: order matters (fixture → api → scoring → config → app) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>

@@ -1,6 +1,7 @@
 {
   "name": "Fran",
   "pin": "8925",
+  "r32Submitted": false,
   "predictions": {
     "M55": {
       "home": 2,
@@ -291,10 +292,12 @@
       "away": 0
     },
     "R01": {
-      "winner": "Mexico"
+      "home": 0,
+      "away": 2
     },
     "R02": {
-      "winner": "Germany"
+      "home": 2,
+      "away": 1
     },
     "R03": {
       "winner": "Morocco"

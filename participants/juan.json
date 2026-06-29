@@ -1,6 +1,7 @@
 {
   "name": "Juan",
   "pin": "4932",
+  "r32Submitted": false,
   "scoreFrom": "2026-06-13",
   "predictions": {
     "M55": {
@@ -291,11 +292,9 @@
       "home": 2,
       "away": 2
     },
-    "R01": {
-      "winner": "Canada"
-    },
     "R02": {
-      "winner": "Germany"
+      "home": 2,
+      "away": 2
     },
     "R03": {
       "winner": "Netherlands"

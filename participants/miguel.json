@@ -2,6 +2,7 @@
   "name": "Miguel",
   "pin": "6151",
   "uuid": "c9069a77-16e9-40f5-b8e7-4af6d2865603",
+  "r32Submitted": false,
   "predictions": {
     "M55": {
       "home": 3,
@@ -292,10 +293,12 @@
       "away": 0
     },
     "R01": {
-      "winner": "Mexico"
+      "home": 0,
+      "away": 2
     },
     "R02": {
-      "winner": "Germany"
+      "home": 3,
+      "away": 1
     },
     "R03": {
       "winner": "Brazil"

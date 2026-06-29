@@ -172,48 +172,60 @@ const GROUP_MATCHES = [
   { id: 'M72', group: 'L', home: 'Croatia',  away: 'Ghana',   date: '2026-06-27' },
 ];
 
-// Knockout stage: TBD teams filled in once group stage ends
+// Knockout stage — real Round of 32 matchups + dates (sourced from ESPN's schedule).
 // IDs: R01-R16 (Round of 32), S01-S08 (R16), Q01-Q04 (QF), SF1-SF2, TP (3rd place), FN (Final)
 const KNOCKOUT_MATCHES = [
-  { id: 'R01', round: 'R32', home: null, away: null, date: '2026-06-29' },
-  { id: 'R02', round: 'R32', home: null, away: null, date: '2026-06-29' },
-  { id: 'R03', round: 'R32', home: null, away: null, date: '2026-06-30' },
-  { id: 'R04', round: 'R32', home: null, away: null, date: '2026-06-30' },
-  { id: 'R05', round: 'R32', home: null, away: null, date: '2026-07-01' },
-  { id: 'R06', round: 'R32', home: null, away: null, date: '2026-07-01' },
-  { id: 'R07', round: 'R32', home: null, away: null, date: '2026-07-02' },
-  { id: 'R08', round: 'R32', home: null, away: null, date: '2026-07-02' },
-  { id: 'R09', round: 'R32', home: null, away: null, date: '2026-07-03' },
-  { id: 'R10', round: 'R32', home: null, away: null, date: '2026-07-03' },
-  { id: 'R11', round: 'R32', home: null, away: null, date: '2026-07-04' },
-  { id: 'R12', round: 'R32', home: null, away: null, date: '2026-07-04' },
-  { id: 'R13', round: 'R32', home: null, away: null, date: '2026-07-05' },
-  { id: 'R14', round: 'R32', home: null, away: null, date: '2026-07-05' },
-  { id: 'R15', round: 'R32', home: null, away: null, date: '2026-07-06' },
-  { id: 'R16', round: 'R32', home: null, away: null, date: '2026-07-06' },
+  { id: 'R01', round: 'R32', home: 'South Africa', away: 'Canada',               date: '2026-06-28' },
+  { id: 'R02', round: 'R32', home: 'Brazil',       away: 'Japan',                date: '2026-06-29' },
+  { id: 'R03', round: 'R32', home: 'Germany',      away: 'Paraguay',             date: '2026-06-29' },
+  { id: 'R04', round: 'R32', home: 'Netherlands',  away: 'Morocco',              date: '2026-06-30' },
+  { id: 'R05', round: 'R32', home: 'Ivory Coast',  away: 'Norway',               date: '2026-06-30' },
+  { id: 'R06', round: 'R32', home: 'France',       away: 'Sweden',               date: '2026-06-30' },
+  { id: 'R07', round: 'R32', home: 'Mexico',       away: 'Ecuador',              date: '2026-07-01' },
+  { id: 'R08', round: 'R32', home: 'England',      away: 'DR Congo',             date: '2026-07-01' },
+  { id: 'R09', round: 'R32', home: 'Belgium',      away: 'Senegal',              date: '2026-07-01' },
+  { id: 'R10', round: 'R32', home: 'United States', away: 'Bosnia and Herzegovina', date: '2026-07-02' },
+  { id: 'R11', round: 'R32', home: 'Spain',        away: 'Austria',              date: '2026-07-02' },
+  { id: 'R12', round: 'R32', home: 'Portugal',     away: 'Croatia',              date: '2026-07-02' },
+  { id: 'R13', round: 'R32', home: 'Switzerland',  away: 'Algeria',              date: '2026-07-03' },
+  { id: 'R14', round: 'R32', home: 'Australia',    away: 'Egypt',                date: '2026-07-03' },
+  { id: 'R15', round: 'R32', home: 'Argentina',    away: 'Cape Verde',           date: '2026-07-03' },
+  { id: 'R16', round: 'R32', home: 'Colombia',     away: 'Ghana',                date: '2026-07-04' },
 
-  { id: 'S01', round: 'R16', home: null, away: null, date: '2026-07-09' },
-  { id: 'S02', round: 'R16', home: null, away: null, date: '2026-07-09' },
-  { id: 'S03', round: 'R16', home: null, away: null, date: '2026-07-10' },
-  { id: 'S04', round: 'R16', home: null, away: null, date: '2026-07-10' },
-  { id: 'S05', round: 'R16', home: null, away: null, date: '2026-07-11' },
-  { id: 'S06', round: 'R16', home: null, away: null, date: '2026-07-11' },
-  { id: 'S07', round: 'R16', home: null, away: null, date: '2026-07-12' },
-  { id: 'S08', round: 'R16', home: null, away: null, date: '2026-07-12' },
+  // R16+ matchups aren't known yet — `from` says which earlier match feeds each slot
+  // (winner advances, except TP which takes the losers of both semifinals).
+  { id: 'S01', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R01', away: 'R03' } },
+  { id: 'S02', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R02', away: 'R05' } },
+  { id: 'S03', round: 'R16', home: null, away: null, date: '2026-07-05', from: { home: 'R04', away: 'R06' } },
+  { id: 'S04', round: 'R16', home: null, away: null, date: '2026-07-06', from: { home: 'R07', away: 'R08' } },
+  { id: 'S05', round: 'R16', home: null, away: null, date: '2026-07-06', from: { home: 'R11', away: 'R12' } },
+  { id: 'S06', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R09', away: 'R10' } },
+  { id: 'S07', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R14', away: 'R16' } },
+  { id: 'S08', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R13', away: 'R15' } },
 
-  { id: 'Q01', round: 'QF', home: null, away: null, date: '2026-07-15' },
-  { id: 'Q02', round: 'QF', home: null, away: null, date: '2026-07-15' },
-  { id: 'Q03', round: 'QF', home: null, away: null, date: '2026-07-16' },
-  { id: 'Q04', round: 'QF', home: null, away: null, date: '2026-07-16' },
+  { id: 'Q01', round: 'QF', home: null, away: null, date: '2026-07-09', from: { home: 'S01', away: 'S02' } },
+  { id: 'Q02', round: 'QF', home: null, away: null, date: '2026-07-10', from: { home: 'S05', away: 'S06' } },
+  { id: 'Q03', round: 'QF', home: null, away: null, date: '2026-07-11', from: { home: 'S03', away: 'S04' } },
+  { id: 'Q04', round: 'QF', home: null, away: null, date: '2026-07-12', from: { home: 'S07', away: 'S08' } },
 
-  { id: 'SF1', round: 'SF', home: null, away: null, date: '2026-07-19' },
-  { id: 'SF2', round: 'SF', home: null, away: null, date: '2026-07-20' },
+  { id: 'SF1', round: 'SF', home: null, away: null, date: '2026-07-14', from: { home: 'Q01', away: 'Q02' } },
+  { id: 'SF2', round: 'SF', home: null, away: null, date: '2026-07-15', from: { home: 'Q03', away: 'Q04' } },
 
-  { id: 'TP',  round: '3RD', home: null, away: null, date: '2026-07-25' },
-  { id: 'FN',  round: 'FN',  home: null, away: null, date: '2026-07-26' },
+  { id: 'TP',  round: '3RD', home: null, away: null, date: '2026-07-18', from: { home: 'SF1', away: 'SF2' }, loser: true },
+  { id: 'FN',  round: 'FN',  home: null, away: null, date: '2026-07-19', from: { home: 'SF1', away: 'SF2' } },
 ];
 
 const ALL_MATCHES = [...GROUP_MATCHES, ...KNOCKOUT_MATCHES];
+
+// Human label for a not-yet-known bracket slot, e.g. "Ganador 16avos #1"
+const BRACKET_ROUND_NAMES = { R: '16avos', S: 'Octavos', Q: 'Cuartos', SF: 'Semifinal' };
+function bracketSlotLabel(sourceId, wantLoser) {
+  const prefix = sourceId.startsWith('SF') ? 'SF' : sourceId[0];
+  const num = sourceId.slice(prefix.length).replace(/^0+/, '') || sourceId.slice(prefix.length);
+  const roundName = BRACKET_ROUND_NAMES[prefix] || prefix;
+  const verb = wantLoser ? 'Perdedor' : 'Ganador';
+  return prefix === 'SF' ? `${verb} ${roundName} ${num}` : `${verb} ${roundName} #${num}`;
+}
 
 const ROUND_LABELS = {
   group: 'Fase de Grupos',
