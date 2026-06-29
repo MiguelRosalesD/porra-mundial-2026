@@ -300,7 +300,8 @@
       "away": 1
     },
     "R03": {
-      "winner": "Brazil"
+      "home": 2,
+      "away": 0
     },
     "R04": {
       "winner": "Morocco"
