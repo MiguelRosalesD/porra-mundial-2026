@@ -2,7 +2,7 @@
   "name": "Miguel",
   "pin": "6151",
   "uuid": "c9069a77-16e9-40f5-b8e7-4af6d2865603",
-  "r32Submitted": false,
+  "r32Submitted": true,
   "predictions": {
     "M55": {
       "home": 3,
@@ -301,46 +301,60 @@
       "away": 1
     },
     "R03": {
-      "winner": "Brazil"
+      "home": 3,
+      "away": 0
     },
     "R04": {
-      "winner": "Morocco"
+      "home": 1,
+      "away": 2
     },
     "R05": {
-      "winner": "France"
+      "home": 1,
+      "away": 3
     },
     "R06": {
-      "winner": "Ivory Coast"
+      "home": 4,
+      "away": 1
     },
     "R07": {
-      "winner": "Czechia"
+      "home": 2,
+      "away": 2
     },
     "R08": {
-      "winner": "England"
+      "home": 3,
+      "away": 2
     },
     "R09": {
-      "winner": "Turkey"
+      "home": 0,
+      "away": 1
     },
     "R10": {
-      "winner": "Belgium"
+      "home": 2,
+      "away": 1
     },
     "R11": {
-      "winner": "Croatia"
+      "home": 3,
+      "away": 0
     },
     "R12": {
-      "winner": "Spain"
+      "home": 2,
+      "away": 2
     },
     "R13": {
-      "winner": "Switzerland"
+      "home": 1,
+      "away": 0
     },
     "R14": {
-      "winner": "Argentina"
+      "home": 0,
+      "away": 2
     },
     "R15": {
-      "winner": "Portugal"
+      "home": 3,
+      "away": 0
     },
     "R16": {
-      "winner": "Iran"
+      "home": 3,
+      "away": 1
     },
     "S01": {
       "winner": "France"

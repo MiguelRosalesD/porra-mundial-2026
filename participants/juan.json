@@ -1,7 +1,7 @@
 {
   "name": "Juan",
   "pin": "4932",
-  "r32Submitted": false,
+  "r32Submitted": true,
   "scoreFrom": "2026-06-13",
   "predictions": {
     "M55": {
@@ -297,46 +297,60 @@
       "away": 2
     },
     "R03": {
-      "winner": "Netherlands"
+      "home": 2,
+      "away": 0
     },
     "R04": {
-      "winner": "Brazil"
+      "home": 1,
+      "away": 1
     },
     "R05": {
-      "winner": "France"
+      "home": 1,
+      "away": 3
     },
     "R06": {
-      "winner": "Senegal"
+      "home": 3,
+      "away": 0
     },
     "R07": {
-      "winner": "South Korea"
+      "home": 1,
+      "away": 1
     },
     "R08": {
-      "winner": "England"
+      "home": 2,
+      "away": 0
     },
     "R09": {
-      "winner": "United States"
+      "home": 0,
+      "away": 1
     },
     "R10": {
-      "winner": "Belgium"
+      "home": 2,
+      "away": 1
     },
     "R11": {
-      "winner": "Colombia"
+      "home": 1,
+      "away": 0
     },
     "R12": {
-      "winner": "Spain"
+      "home": 2,
+      "away": 2
     },
     "R13": {
-      "winner": "Switzerland"
+      "home": 0,
+      "away": 0
     },
     "R14": {
-      "winner": "Argentina"
+      "home": 0,
+      "away": 1
     },
     "R15": {
-      "winner": "Portugal"
+      "home": 3,
+      "away": 0
     },
     "R16": {
-      "winner": "Turkey"
+      "home": 4,
+      "away": 1
     },
     "S01": {
       "winner": "France"
