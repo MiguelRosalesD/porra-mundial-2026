@@ -295,6 +295,10 @@
       "home": 2,
       "away": 1
     },
+    "R03": {
+      "home": 3,
+      "away": 0
+    },
     "R05": {
       "winner": "Senegal"
     },
