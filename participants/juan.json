@@ -351,54 +351,6 @@
     "R16": {
       "home": 4,
       "away": 1
-    },
-    "S01": {
-      "winner": "France"
-    },
-    "S02": {
-      "winner": "Netherlands"
-    },
-    "S03": {
-      "winner": "Brazil"
-    },
-    "S04": {
-      "winner": "England"
-    },
-    "S05": {
-      "winner": "Spain"
-    },
-    "S06": {
-      "winner": "United States"
-    },
-    "S07": {
-      "winner": "Argentina"
-    },
-    "S08": {
-      "winner": "Portugal"
-    },
-    "Q01": {
-      "winner": "Netherlands"
-    },
-    "Q02": {
-      "winner": "Spain"
-    },
-    "Q03": {
-      "winner": "England"
-    },
-    "Q04": {
-      "winner": "Portugal"
-    },
-    "SF1": {
-      "winner": "Spain"
-    },
-    "SF2": {
-      "winner": "Portugal"
-    },
-    "TP": {
-      "winner": "England"
-    },
-    "FN": {
-      "winner": "Spain"
     }
   }
 }
