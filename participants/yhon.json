@@ -303,17 +303,17 @@
       "home": 2,
       "away": 0
     },
-    "R04": {
-      "winner": "Morocco"
-    },
     "R05": {
-      "winner": "France"
+      "home": 1,
+      "away": 1
     },
     "R06": {
-      "winner": "Norway"
+      "home": 3,
+      "away": 1
     },
     "R07": {
-      "winner": "Mexico"
+      "home": 0,
+      "away": 1
     },
     "R08": {
       "winner": "England"

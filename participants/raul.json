@@ -1,7 +1,7 @@
 {
   "name": "Raul",
   "pin": "6767",
-  "r32Submitted": false,
+  "r32Submitted": true,
   "predictions": {
     "M55": {
       "home": 2,
@@ -300,10 +300,59 @@
       "away": 0
     },
     "R05": {
-      "winner": "Senegal"
+      "home": 1,
+      "away": 3
     },
     "R01": {
       "home": 0,
+      "away": 2
+    },
+    "R04": {
+      "home": 2,
+      "away": 0
+    },
+    "R06": {
+      "home": 2,
+      "away": 0
+    },
+    "R07": {
+      "home": 2,
+      "away": 1
+    },
+    "R08": {
+      "home": 4,
+      "away": 0
+    },
+    "R09": {
+      "home": 1,
+      "away": 1
+    },
+    "R10": {
+      "home": 1,
+      "away": 2
+    },
+    "R11": {
+      "home": 2,
+      "away": 0
+    },
+    "R12": {
+      "home": 1,
+      "away": 2
+    },
+    "R13": {
+      "home": 0,
+      "away": 0
+    },
+    "R14": {
+      "home": 0,
+      "away": 2
+    },
+    "R15": {
+      "home": 2,
+      "away": 0
+    },
+    "R16": {
+      "home": 2,
       "away": 2
     }
   }
