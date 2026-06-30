@@ -1,7 +1,7 @@
 {
   "name": "Yhon",
   "pin": "2853",
-  "r32Submitted": false,
+  "r32Submitted": true,
   "predictions": {
     "M55": {
       "home": 2,
@@ -313,6 +313,42 @@
     },
     "R07": {
       "home": 0,
+      "away": 1
+    },
+    "R08": {
+      "home": 2,
+      "away": 0
+    },
+    "R09": {
+      "home": 1,
+      "away": 1
+    },
+    "R10": {
+      "home": 2,
+      "away": 1
+    },
+    "R11": {
+      "home": 2,
+      "away": 0
+    },
+    "R12": {
+      "home": 1,
+      "away": 0
+    },
+    "R13": {
+      "home": 1,
+      "away": 0
+    },
+    "R14": {
+      "home": 0,
+      "away": 0
+    },
+    "R15": {
+      "home": 3,
+      "away": 1
+    },
+    "R16": {
+      "home": 2,
       "away": 1
     }
   }
