@@ -1145,9 +1145,21 @@ function goToPredictForm() {
   switchView('predict');
 }
 
+// A round only opens for predictions once the ENTIRE previous round has finished —
+// even if a given match's teams are already known earlier (e.g. Morocco-France was
+// decided as soon as both played their Octavos game), we hold it back so nobody can
+// submit Cuartos picks while Octavos is still being played out.
+const PREVIOUS_KNOCKOUT_ROUND = { R16: 'R32', QF: 'R16', SF: 'QF', '3RD': 'SF', FN: 'SF' };
+function isRoundComplete(round) {
+  const matches = KNOCKOUT_MATCHES.filter(m => m.round === round);
+  return matches.length > 0 && matches.every(m => resultsMap[m.id]?.finished);
+}
+
 function getPredictableMatches() {
   return KNOCKOUT_MATCHES.filter(m => {
     if (m.round === 'R32') return false;
+    const prevRound = PREVIOUS_KNOCKOUT_ROUND[m.round];
+    if (prevRound && !isRoundComplete(prevRound)) return false;
     const teams = resolveBracketTeams(m.id, resultsMap);
     if (!teams.home || !teams.away) return false;
     const r = resultsMap[m.id];
