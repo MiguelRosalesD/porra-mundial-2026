@@ -12,13 +12,12 @@ function scoreMatch(prediction, result, round) {
   if (!prediction) return 0;
 
   const [pts1x2, ptsExact] = SCORING[round] || SCORING.group;
-  const realHome = result.homeScore;
-  const realAway = result.awayScore;
 
-  // Knockout winner-only prediction (from infobae simulator)
+  // Knockout winner-only prediction (from infobae simulator): who actually advances,
+  // which depends on the full-time result including extra time/penalties.
   if (prediction.winner != null) {
-    const actualWinner = realHome > realAway ? result.homeTeam
-                       : realAway > realHome ? result.awayTeam
+    const actualWinner = result.homeScore > result.awayScore ? result.homeTeam
+                       : result.awayScore > result.homeScore ? result.awayTeam
                        : null; // draw shouldn't happen in knockout
     return prediction.winner === actualWinner ? pts1x2 : 0;
   }
@@ -26,6 +25,10 @@ function scoreMatch(prediction, result, round) {
   if (prediction.home == null || prediction.away == null) return 0;
   const predHome = parseInt(prediction.home, 10);
   const predAway = parseInt(prediction.away, 10);
+
+  // Score predictions only ever cover the 90-minute result, never extra time/penalties.
+  const realHome = result.regHomeScore ?? result.homeScore;
+  const realAway = result.regAwayScore ?? result.awayScore;
 
   // Exact score
   if (predHome === realHome && predAway === realAway) return ptsExact;

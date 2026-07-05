@@ -37,6 +37,28 @@ async function fetchMatchesForDate(dateStr) {
   return json.events || [];
 }
 
+// Predictions only ever cover the 90-minute result. Once a knockout match goes to extra
+// time (period > 2), ESPN's competitor "score" includes ET goals (but not the penalty
+// shootout, which is tracked separately). To score predictions fairly we need the score
+// as it stood at the end of regulation time, derived from the goal-by-goal "details" feed.
+function computeRegulationScore(comp, homeId, awayId, finalHome, finalAway, period) {
+  if (period == null || period <= 2) return { regHomeScore: finalHome, regAwayScore: finalAway };
+
+  const details = comp?.details;
+  if (!Array.isArray(details)) return { regHomeScore: finalHome, regAwayScore: finalAway };
+
+  let regHome = 0, regAway = 0;
+  for (const d of details) {
+    if (!d.scoringPlay || d.shootout) continue;
+    const minute = parseInt(d.clock?.displayValue, 10);
+    if (Number.isNaN(minute) || minute > 90) continue;
+    const val = d.scoreValue || 1;
+    if (d.team?.id === homeId) regHome += val;
+    else if (d.team?.id === awayId) regAway += val;
+  }
+  return { regHomeScore: regHome, regAwayScore: regAway };
+}
+
 function espnEventToResult(event) {
   const comp = event.competitions?.[0];
   if (!comp) return null;
@@ -52,12 +74,24 @@ function espnEventToResult(event) {
   const clock    = event.status?.displayClock || '';
   const period   = event.status?.period || 0;
 
+  const homeScore = (finished || live) ? parseInt(home.score, 10) : null;
+  const awayScore = (finished || live) ? parseInt(away.score, 10) : null;
+
+  let regHomeScore = homeScore, regAwayScore = awayScore;
+  if (homeScore != null && awayScore != null) {
+    try {
+      ({ regHomeScore, regAwayScore } = computeRegulationScore(comp, home.team.id, away.team.id, homeScore, awayScore, period));
+    } catch (e) {
+      regHomeScore = homeScore; regAwayScore = awayScore;
+    }
+  }
+
   return {
     espnId:    event.id,
     homeTeam:  normalizeTeam(home.team.displayName),
     awayTeam:  normalizeTeam(away.team.displayName),
-    homeScore: (finished || live) ? parseInt(home.score, 10) : null,
-    awayScore: (finished || live) ? parseInt(away.score, 10) : null,
+    homeScore, awayScore,
+    regHomeScore, regAwayScore,
     status, finished, live, clock, period,
     date: event.date?.slice(0, 10),
   };

@@ -128,12 +128,22 @@ function logout() {
 function computeStakes(matchId, liveResult, round) {
   const h = liveResult.homeScore ?? 0;
   const a = liveResult.awayScore ?? 0;
-  const safe = { ...liveResult, homeScore: h, awayScore: a };
+  // While still in regulation time, the 90' score tracks the live score 1:1. Once the
+  // match reaches extra time, the 90' score is already locked in and further goals
+  // must not move it (predictions never cover extra time/penalties).
+  const inRegulation = (liveResult.period ?? 0) <= 2;
+  const regH = inRegulation ? h : (liveResult.regHomeScore ?? h);
+  const regA = inRegulation ? a : (liveResult.regAwayScore ?? a);
+  const safe = { ...liveResult, homeScore: h, awayScore: a, regHomeScore: regH, regAwayScore: regA };
   return participants.map(p => {
     const pred   = p.predictions?.[matchId];
     const now    = scoreMatch(pred, safe, round);
-    const ifHome = scoreMatch(pred, { ...safe, homeScore: h + 1 }, round);
-    const ifAway = scoreMatch(pred, { ...safe, awayScore: a + 1 }, round);
+    const ifHome = scoreMatch(pred, inRegulation
+      ? { ...safe, homeScore: h + 1, regHomeScore: regH + 1 }
+      : { ...safe, homeScore: h + 1 }, round);
+    const ifAway = scoreMatch(pred, inRegulation
+      ? { ...safe, awayScore: a + 1, regAwayScore: regA + 1 }
+      : { ...safe, awayScore: a + 1 }, round);
     return { name: p.name, pred, now, ifHome, ifAway };
   });
 }
