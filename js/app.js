@@ -277,7 +277,9 @@ function renderLivePanel() {
     const away   = result.awayTeam || match.away || '?';
     const h      = result.homeScore ?? 0;
     const a      = result.awayScore ?? 0;
-    const stakes = computeStakes(match.id, result, round);
+    const blackout    = isBlackoutMatch(match);
+    const allStakes   = computeStakes(match.id, result, round);
+    const stakes = blackout ? allStakes.filter(s => s.name === selectedPlayer) : allStakes;
     const msgs   = generateMessages(stakes, home, away, h, a);
 
     const clockStr = result.status === 'STATUS_HALFTIME' ? 'Descanso'
@@ -302,6 +304,7 @@ function renderLivePanel() {
               </tr></thead>
               <tbody>${rows}</tbody>
             </table>
+            ${blackout ? '<div class="blackout-note-sm">🔒 Solo tu apuesta — la del resto se revela al final del torneo</div>' : ''}
           </div>`;
         })()
       : `<div class="live-locked"><button class="identity-btn" onclick="showIdentityModal()">Identifícate para ver las apuestas</button></div>`;
@@ -335,10 +338,10 @@ let positionDeltas = {};
 
 // ── Position deltas ───────────────────────────────────────────────────────────
 
-function updatePositionDeltas() {
+function updatePositionDeltas(board) {
   const finishedCount = finishedMatchesSorted().length;
   const currentPositions = {};
-  leaderboard.forEach((p, i) => { currentPositions[p.name] = i + 1; });
+  board.forEach((p, i) => { currentPositions[p.name] = i + 1; });
 
   const stored = JSON.parse(localStorage.getItem('porra_pos_data') || 'null');
 
@@ -413,8 +416,7 @@ function finishedMatchesSorted() {
 
 // ── Badges ────────────────────────────────────────────────────────────────────
 
-function computeBadges(participant, rank, total) {
-  const finished = finishedMatchesSorted();
+function computeBadges(participant, rank, total, finished = finishedMatchesSorted()) {
   const badges = [];
 
   // ── Position ────────────────────────────────────────────────────────────────
@@ -469,7 +471,8 @@ function renderHighlightCard() {
   const el = document.getElementById('highlight-card');
   if (!el) return;
 
-  const finished = finishedMatchesSorted();
+  // Blackout: from Octavos onward, don't broadcast who nailed which prediction.
+  const finished = finishedMatchesSorted().filter(m => !isBlackoutMatch(m));
   if (!finished.length) { el.innerHTML = ''; return; }
 
   // Group by date, pick the most recent
@@ -556,13 +559,41 @@ function renderEvolutionChart() {
     return `${h} ${r.homeScore}-${r.awayScore} ${a}`;
   });
 
-  const datasets = leaderboard.map((p, i) => {
+  // Blackout: from Octavos onward, only the identified player's line keeps climbing.
+  // Everyone else's line freezes flat at the value it had right before Octavos —
+  // and, to avoid the legend order itself giving away the real ranking, series are
+  // ordered by that frozen value rather than by live (hidden) score.
+  const frozenFromIndex = finished.findIndex(m => isBlackoutMatch(m));
+  const frozenMap = buildFrozenResultsMap();
+  const orderedParticipants = leaderboard
+    .map(p => ({ p, order: displayEntry(p, frozenMap).score }))
+    .sort((a, b) => b.order - a.order)
+    .map(x => x.p);
+  const banner = document.getElementById('evolution-banner');
+  if (banner) {
+    banner.innerHTML = frozenFromIndex === -1 ? '' :
+      `<div class="blackout-note">🔒 Desde Octavos, solo tu línea (si te identificas) sigue subiendo. El resto se congela hasta la revelación final.</div>`;
+  }
+
+  const datasets = orderedParticipants.map((p, i) => {
     let running = 0;
+    let frozenAt = null;
+    const isYou = p.name === selectedPlayer;
+    const data = finished.map((m, idx) => {
+      const isBlackoutPoint = frozenFromIndex !== -1 && idx >= frozenFromIndex;
+      if (isYou || !isBlackoutPoint) {
+        running += (p.breakdown[m.id] || 0);
+      } else if (frozenAt == null) {
+        frozenAt = running;
+      }
+      return (isBlackoutPoint && !isYou) ? frozenAt : running;
+    });
     return {
-      label: p.name,
-      data: finished.map(m => { running += (p.breakdown[m.id] || 0); return running; }),
+      label: p.name + (isYou ? ' (tú)' : ''),
+      data,
       borderColor: CHART_COLORS[i % CHART_COLORS.length],
       backgroundColor: CHART_COLORS[i % CHART_COLORS.length] + '18',
+      borderDash: (!isYou && frozenFromIndex !== -1) ? [6, 4] : undefined,
       tension: 0.35,
       pointRadius: 4,
       pointHoverRadius: 7,
@@ -612,21 +643,63 @@ function renderEvolutionChart() {
   });
 }
 
+// ── Blackout mode ──────────────────────────────────────────────────────────────
+// From Octavos (R16) onward, the group wants the ending kept a surprise until a
+// dedicated reveal event. So from here on: only the identified player's own score
+// stays live; everyone else is frozen at exactly the state they were in when R16
+// kicked off (their real score keeps changing behind the scenes, just not shown).
+
+const BLACKOUT_ROUNDS = ['R16', 'QF', 'SF', '3RD', 'FN'];
+function isBlackoutMatch(match) { return BLACKOUT_ROUNDS.includes(match.round); }
+
+function buildFrozenResultsMap() {
+  const frozen = {};
+  for (const m of ALL_MATCHES) {
+    if (!isBlackoutMatch(m)) frozen[m.id] = resultsMap[m.id];
+  }
+  return frozen;
+}
+
+// The entry to actually display for a participant: live for the identified player,
+// frozen at the pre-blackout state for everyone else.
+function displayEntry(p, frozenMap) {
+  if (p.name === selectedPlayer) return p;
+  const { total, breakdown, groupBonus, groupBonusGroups } = scoreParticipant(p, frozenMap);
+  return { ...p, score: total, breakdown, groupBonus, groupBonusGroups };
+}
+
 // ── Leaderboard ──────────────────────────────────────────────────────────────
 
 function renderLeaderboard() {
   leaderboard = buildLeaderboard(participants, resultsMap);
-  updatePositionDeltas();
+  const frozenMap = buildFrozenResultsMap();
+  const display = leaderboard
+    .map(p => displayEntry(p, frozenMap))
+    .sort((a, b) => b.score - a.score);
+
+  updatePositionDeltas(display);
   renderLivePanel();
   renderHighlightCard();
-  const maxScore = leaderboard[0]?.score || 1;
+
+  const banner = document.getElementById('blackout-banner');
+  if (banner) {
+    banner.innerHTML = selectedPlayer
+      ? `<div class="blackout-note">🔒 Clasificación en pausa desde Octavos: solo ves tu puntuación en vivo. El resto queda congelado en su marcador de Dieciseisavos hasta la gran revelación final.</div>`
+      : `<div class="blackout-note">🔒 Clasificación en pausa desde Octavos. Identifícate para ver, al menos, tu propia puntuación en vivo.</div>`;
+  }
+
+  const maxScore = display[0]?.score || 1;
   const el = document.getElementById('leaderboard-list');
-  if (!leaderboard.length) {
+  if (!display.length) {
     el.innerHTML = '<p class="empty">Añade participantes en la carpeta participants/</p>';
     return;
   }
 
-  el.innerHTML = leaderboard.map((p, i) => {
+  const allFinished  = finishedMatchesSorted();
+  const frozenFinished = allFinished.filter(m => !isBlackoutMatch(m));
+
+  el.innerHTML = display.map((p, i) => {
+    const isYou = p.name === selectedPlayer;
     const exactCount = Object.entries(p.breakdown).filter(([matchId, pts]) => {
       const match = ALL_MATCHES.find(m => m.id === matchId);
       const round = match?.group ? 'group' : match?.round;
@@ -634,19 +707,20 @@ function renderLeaderboard() {
     }).length;
     const hitCount = Object.keys(p.breakdown).length;
     const pct      = maxScore > 0 ? (p.score / maxScore * 100).toFixed(0) : 0;
-    const badges   = computeBadges(p, i + 1, leaderboard.length);
+    const badges   = computeBadges(p, i + 1, display.length, isYou ? allFinished : frozenFinished);
     const badgeHtml = badges.length
       ? `<div class="badge-row">${badges.map(b => `<span class="badge ${b.cls || ''}">${b.icon} ${b.label}</span>`).join('')}</div>`
       : '';
     const bonusStr = p.groupBonus ? ` · +${p.groupBonus} grupos` : '';
+    const frozenTag = isYou ? '' : ' · 🔒 congelado en 16avos';
 
     return `
-    <div class="lb-card" onclick="showDetail('${p.name}')">
-      <div class="lb-rank rank-${i + 1}">${rankEmoji(i + 1)}${deltaHtml(p.name)}</div>
+    <div class="lb-card ${isYou ? 'lb-you' : 'lb-frozen'}" onclick="showDetail('${p.name}')">
+      <div class="lb-rank rank-${i + 1}">${rankEmoji(i + 1)}${isYou ? deltaHtml(p.name) : ''}</div>
       <div class="lb-avatar">${p.name[0].toUpperCase()}</div>
       <div class="lb-info">
-        <div class="lb-name">${p.name}</div>
-        <div class="lb-stats">${hitCount} aciertos · ${exactCount} exactos${bonusStr}</div>
+        <div class="lb-name">${p.name}${isYou ? ' <span class="you-tag">TÚ</span>' : ''}</div>
+        <div class="lb-stats">${hitCount} aciertos · ${exactCount} exactos${bonusStr}${frozenTag}</div>
         ${badgeHtml}
         <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
       </div>
@@ -665,8 +739,9 @@ function rankEmoji(n) {
 // ── Participant detail ────────────────────────────────────────────────────────
 
 function showDetail(name) {
-  detailTarget = leaderboard.find(p => p.name === name);
-  if (!detailTarget) return;
+  const p = leaderboard.find(p => p.name === name);
+  if (!p) return;
+  detailTarget = displayEntry(p, buildFrozenResultsMap());
   switchView('detail');
   renderDetail();
 }
@@ -726,6 +801,7 @@ function renderDetail() {
 function canSeePrediction(participantName, match) {
   if (!selectedPlayer) return false;
   if (selectedPlayer === participantName) return true;
+  if (isBlackoutMatch(match)) return false; // stays secret forever, even once the match finishes
 
   const result = resultsMap[match.id];
   return !!(result?.finished);
@@ -967,99 +1043,33 @@ function showSpinner(containerId) {
 }
 
 // ── News / announcements modal ─────────────────────────────────────────────────
-// Multi-slide carousel shown on entry while the active player hasn't sent their
-// Round of 32 picks yet (flip `r32Submitted: true` in their participants/*.json once they do).
+// Multi-slide carousel shown once per player, announcing what changed in each
+// release. Bump NEWS_VERSION and replace NEWS_SLIDES when there's something new
+// to announce — old slides don't need to be kept around, each version is self-contained.
 
-function groupBonusVisualHtml() {
-  if (!leaderboard.length) return '';
-  const sorted = [...leaderboard].sort((a, b) => (b.groupBonus || 0) - (a.groupBonus || 0));
-  const rows = sorted.map(p => `
-    <div class="bonus-row${p.name === selectedPlayer ? ' bonus-row-me' : ''}">
-      <span class="bonus-avatar">${p.name[0].toUpperCase()}</span>
-      <span class="bonus-name">${p.name}</span>
-      <span class="bonus-pill${p.groupBonus ? '' : ' bonus-pill-zero'}">+${p.groupBonus || 0}</span>
-    </div>`).join('');
-  return `<div class="bonus-board">${rows}</div>`;
-}
-
-function chaseVisualHtml() {
-  if (!leaderboard.length) return '';
-  const leader = leaderboard[0];
-  const slug = leader.name.toLowerCase();
-  return `
-  <div class="wanted-poster">
-    <div class="wanted-stamp">SE BUSCA</div>
-    <div class="wanted-avatar">
-      <img src="assets/${slug}.jpg" alt="${leader.name}" class="wanted-avatar-img"
-           onerror="this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='flex';};this.src='assets/${slug}.png';">
-      <span class="wanted-avatar-letter" style="display:none">${leader.name[0].toUpperCase()}</span>
-    </div>
-    <div class="wanted-name">${leader.name}</div>
-    <div class="wanted-score">${leader.score} pts</div>
-    <div class="wanted-caption">Líder tras el cierre de grupos</div>
-  </div>`;
-}
-
-function chaseTitle() {
-  return leaderboard.length ? `¡A la caza de ${leaderboard[0].name}!` : '¡A la caza del líder!';
-}
-
-function chaseBody() {
-  if (leaderboard.length < 2) return '';
-  const [leader, second] = leaderboard;
-  const gap = leader.score - second.score;
-  return `${leader.name} se sitúa líder tras el cierre de los grupos a ${gap} puntos del 2º (${second.name}). Pero todo puede dar la vuelta en las eliminatorias, donde cada acierto suma muchos más puntos.`;
-}
-
-function bottomVisualHtml() {
-  if (leaderboard.length < 2) return '';
-  const last = leaderboard[leaderboard.length - 1];
-  const secondLast = leaderboard[leaderboard.length - 2];
-  return `
-  <div class="loser-poster">
-    <div class="loser-stamp">ZONA PERDEDORES</div>
-    <div class="loser-photo">
-      <img src="assets/perdedores.jpg" alt="Zona de perdedores" class="loser-photo-img">
-    </div>
-    <div class="loser-name">${last.name} y ${secondLast.name}</div>
-    <div class="loser-score">${last.score} y ${secondLast.score} pts</div>
-    <div class="loser-caption">TABLA BAJA AL CIERRE DE GRUPOS</div>
-  </div>`;
-}
-
-function bottomBody() {
-  if (leaderboard.length < 2) return '';
-  const leader = leaderboard[0];
-  const last = leaderboard[leaderboard.length - 1];
-  const secondLast = leaderboard[leaderboard.length - 2];
-  const gap = leader.score - last.score;
-  return `En el fondo de la tabla están ${last.name} y ${secondLast.name}, estando el primero a ${gap} puntos del líder. Suerte con las eliminatorias, os va a hacer falta.`;
-}
+const NEWS_VERSION = 'v1.2.4';
 
 const NEWS_SLIDES = [
   {
+    icon: '🥅',
+    title: 'Parche v1.2.4: se acabaron las prórrogas',
+    body: 'Hasta ahora los partidos de eliminatoria puntuaban con el resultado final, prórroga y penaltis incluidos. Como nuestras predicciones son solo de los 90 minutos, hemos recalculado TODO lo de dieciseisavos con el marcador reglamentario. Sí, esto le ha quitado puntos a más de uno. No, no hay vuelta atrás.',
+  },
+  {
+    icon: '🤦',
+    title: '...y resulta que el cruce de octavos estaba mal',
+    body: 'Sorpresa extra: la web llevaba días pensando que Alemania y Paraguay se habían quedado empatados a penaltis para toda la eternidad, y que Canadá jugaba contra Paraguay en vez de contra Marruecos. Ya está arreglado: ahora sabe quién gana a penaltis, y los cruces de octavos son los reales de verdad (iros olvidando de esa Canadá-Paraguay que nunca existió).',
+  },
+  {
     icon: '🔒',
-    title: '¡GRUPOS CERRADOS!',
-    body: 'STOP THE COUNT. Se ha acabado la fase de grupos, y con ello, se han otorgado bonus de 1 punto por cada grupo acertado a la perfección.',
-    visual: groupBonusVisualHtml,
-  },
-  {
-    icon: '🕵️',
-    title: chaseTitle,
-    body: chaseBody,
-    visual: chaseVisualHtml,
-  },
-  {
-    icon: '🗑️',
-    title: 'A ver si espabilamos',
-    body: bottomBody,
-    visual: bottomVisualHtml,
+    title: 'La clasificación se apaga desde octavos',
+    body: 'Para que la tensión dure hasta el final, hemos secuestrado la tabla de posiciones: a partir de ahora solo ves tu propia puntuación en vivo. El resto de la peña se queda congelada en su marcador de dieciseisavos hasta que lo destapemos todo en un evento por todo lo alto cuando acabe el Mundial.',
   },
   {
     icon: '🗳️',
-    title: '¡Hora de pronosticar!',
-    body: 'Para las rondas eliminatorias, tendremos que cubrir el formulario con nuestros resultados, y al terminar, darle a "LISTO, COPIAR", y pasárselo a Miguel para cargar las predicciones a la web.',
-    visual: () => `<button class="cta-btn" onclick="goToPredictForm()">¡VAMOS ALLÁ! 🚀</button>`,
+    title: '¡A votar octavos!',
+    body: 'El formulario de pronósticos ya no es solo para dieciseisavos: a partir de ahora, en cuanto se conozcan los cruces de cada ronda (cuartos, semis, final...) aparecerán aquí solos, sin que nadie tenga que tocar nada. Así que ya sabes, dale al botón y deja tu pronóstico antes de que empiecen los partidos.',
+    visual: () => `<button class="cta-btn" onclick="goToPredictForm()">IR A PRONOSTICAR 🚀</button>`,
   },
 ];
 
@@ -1096,8 +1106,13 @@ function newsNext() {
   renderNewsSlide();
 }
 
+function newsSeenKey() {
+  return `news_seen_${NEWS_VERSION}_${selectedPlayer}`;
+}
+
 function closeNewsModal() {
   document.getElementById('news-modal').style.display = 'none';
+  if (selectedPlayer) localStorage.setItem(newsSeenKey(), '1');
 }
 
 function handleNewsModalClick(e) {
@@ -1106,17 +1121,23 @@ function handleNewsModalClick(e) {
 
 function maybeShowNewsModal() {
   if (!selectedPlayer) return;
-  const participant = participants.find(p => p.name === selectedPlayer);
-  if (!participant || participant.r32Submitted) return;
+  if (localStorage.getItem(newsSeenKey())) return;
   newsSlideIndex = 0;
   renderNewsSlide();
   document.getElementById('news-modal').style.display = 'flex';
 }
 
-// ── Prediction form (Round of 32) ──────────────────────────────────────────────
+// ── Prediction form (knockout rounds) ──────────────────────────────────────────
 // Local-only draft (per player, per browser) — no backend. When done, the player
 // copies the generated JSON and sends it to Miguel, who pastes it into their
-// participants/*.json and flips r32Submitted to true.
+// participants/*.json.
+//
+// The list of "predictable" matches is fully dynamic: a knockout match shows up
+// here as soon as both its teams are known (the bracket has resolved that slot)
+// and it hasn't kicked off yet. That means once a round finishes and the next
+// round's matchups resolve, they appear automatically — no per-round code needed.
+// R32 had its own one-off exclusion list before this form existed; that round is
+// long closed now, so it's simply skipped here.
 
 function goToPredictForm() {
   closeNewsModal();
@@ -1124,22 +1145,26 @@ function goToPredictForm() {
   switchView('predict');
 }
 
-// R01 (South Africa-Canada) and R02 (Brazil-Japan) already kicked off before the
-// form existed — their results/picks were collected by hand, so skip them here.
-const PREDICT_FORM_EXCLUDED = ['R01', 'R02'];
-function getPredictableR32Matches() {
-  return KNOCKOUT_MATCHES.filter(m => m.round === 'R32' && !PREDICT_FORM_EXCLUDED.includes(m.id));
+function getPredictableMatches() {
+  return KNOCKOUT_MATCHES.filter(m => {
+    if (m.round === 'R32') return false;
+    const teams = resolveBracketTeams(m.id, resultsMap);
+    if (!teams.home || !teams.away) return false;
+    const r = resultsMap[m.id];
+    if (r?.live || r?.finished) return false;
+    return true;
+  });
 }
 
 function predictDraftKey() {
-  return `porra_r32_draft_${selectedPlayer}`;
+  return `porra_predict_draft_${selectedPlayer}`;
 }
 
 function loadPredictDraft() {
   const stored = JSON.parse(localStorage.getItem(predictDraftKey()) || 'null') || {};
-  const r32 = getPredictableR32Matches();
+  const matches = getPredictableMatches();
   const draft = {};
-  for (const m of r32) draft[m.id] = stored[m.id] || { home: 0, away: 0, touched: false };
+  for (const m of matches) draft[m.id] = stored[m.id] || { home: 0, away: 0, touched: false };
   return draft;
 }
 
@@ -1161,17 +1186,19 @@ function adjustPredictScore(matchId, side, delta) {
 }
 
 function updatePredictProgress() {
-  const r32 = getPredictableR32Matches();
-  const touched = r32.filter(m => predictDraft[m.id].touched).length;
+  const matches = getPredictableMatches();
+  const touched = matches.filter(m => predictDraft[m.id]?.touched).length;
   const el = document.getElementById('predict-progress');
-  if (el) el.textContent = `${touched} / ${r32.length} partidos completados`;
+  if (el) el.textContent = `${touched} / ${matches.length} partidos completados`;
 }
 
 function renderPredictMatch(match) {
   const d = predictDraft[match.id];
+  const teams = resolveBracketTeams(match.id, resultsMap);
+  const home = teams.home, away = teams.away;
   return `
   <div class="predict-row">
-    <div class="predict-team home">${match.home}<span class="team-flag">${flag(match.home)}</span></div>
+    <div class="predict-team home">${home}<span class="team-flag">${flag(home)}</span></div>
     <div class="predict-steppers">
       <div class="stepper">
         <button class="stepper-btn" onclick="adjustPredictScore('${match.id}','home',-1)">−</button>
@@ -1185,7 +1212,7 @@ function renderPredictMatch(match) {
         <button class="stepper-btn" onclick="adjustPredictScore('${match.id}','away',1)">+</button>
       </div>
     </div>
-    <div class="predict-team away"><span class="team-flag">${flag(match.away)}</span>${match.away}</div>
+    <div class="predict-team away"><span class="team-flag">${flag(away)}</span>${away}</div>
   </div>`;
 }
 
@@ -1199,13 +1226,28 @@ function renderPredictForm() {
   }
 
   predictDraft = loadPredictDraft();
-  const r32 = getPredictableR32Matches();
+  const matches = getPredictableMatches();
+
+  if (!matches.length) {
+    el.innerHTML = `
+      <button class="back-btn" onclick="switchView('leaderboard')">← Volver</button>
+      <p class="empty">No hay partidos pendientes de pronóstico ahora mismo.<br>Vuelve cuando termine la ronda en curso y se conozcan los próximos cruces.</p>`;
+    return;
+  }
+
+  const byRound = {};
+  for (const m of matches) (byRound[m.round] = byRound[m.round] || []).push(m);
+
+  const sectionsHtml = Object.entries(byRound).map(([round, ms]) => `
+    <div class="section-title">${ROUND_LABELS[round] || round}</div>
+    <div class="predict-list">${ms.map(renderPredictMatch).join('')}</div>
+  `).join('');
 
   el.innerHTML = `
     <button class="back-btn" onclick="switchView('leaderboard')">← Volver</button>
-    <div class="section-title">Dieciseisavos de Final · ${selectedPlayer}</div>
+    <div class="section-title">Pronósticos · ${selectedPlayer}</div>
     <p id="predict-progress" class="predict-hint"></p>
-    <div class="predict-list">${r32.map(renderPredictMatch).join('')}</div>
+    ${sectionsHtml}
     <button class="copy-btn" id="predict-copy-btn" onclick="copyPredictions()">LISTO, COPIAR 📋</button>
     <textarea id="predict-output" class="predict-output" readonly rows="4"
       placeholder="Aquí aparecerá el texto a copiar..."></textarea>
@@ -1214,9 +1256,9 @@ function renderPredictForm() {
 }
 
 function buildPredictionsCopyText() {
-  const r32 = getPredictableR32Matches();
-  const lines = r32.map(m => `  "${m.id}": { "home": ${predictDraft[m.id].home}, "away": ${predictDraft[m.id].away} }`);
-  return `Predicciones de ${selectedPlayer} (Dieciseisavos de Final):\n{\n${lines.join(',\n')}\n}`;
+  const matches = getPredictableMatches();
+  const lines = matches.map(m => `  "${m.id}": { "home": ${predictDraft[m.id].home}, "away": ${predictDraft[m.id].away} }`);
+  return `Predicciones de ${selectedPlayer}:\n{\n${lines.join(',\n')}\n}`;
 }
 
 async function copyPredictions() {

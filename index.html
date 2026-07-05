@@ -109,12 +109,14 @@
   <button data-view="scoring"     onclick="switchView('scoring')">📋 Puntuación</button>
   <button data-view="evolution"   onclick="switchView('evolution')">📈 Evolución</button>
   <button data-view="achievements" onclick="switchView('achievements')">🏅 Logros</button>
+  <button data-view="predict"      onclick="goToPredictForm()">🗳️ Pronósticos</button>
 </nav>
 
 <main>
 
   <!-- Leaderboard -->
   <div id="view-leaderboard" class="view active">
+    <div id="blackout-banner"></div>
     <div id="live-panel"></div>
     <div id="highlight-card"></div>
     <div id="leaderboard-list"><div class="spinner"></div></div>
@@ -138,6 +140,7 @@
   <!-- Evolution chart -->
   <div id="view-evolution" class="view">
     <div class="section-title">Evolución de la clasificación</div>
+    <div id="evolution-banner"></div>
     <div class="chart-container">
       <canvas id="evolution-canvas"></canvas>
     </div>

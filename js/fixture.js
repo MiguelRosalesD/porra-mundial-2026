@@ -194,19 +194,19 @@ const KNOCKOUT_MATCHES = [
 
   // R16+ matchups aren't known yet — `from` says which earlier match feeds each slot
   // (winner advances, except TP which takes the losers of both semifinals).
-  { id: 'S01', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R01', away: 'R03' } },
-  { id: 'S02', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R02', away: 'R05' } },
-  { id: 'S03', round: 'R16', home: null, away: null, date: '2026-07-05', from: { home: 'R04', away: 'R06' } },
+  { id: 'S01', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R01', away: 'R04' } },
+  { id: 'S02', round: 'R16', home: null, away: null, date: '2026-07-05', from: { home: 'R02', away: 'R05' } },
+  { id: 'S03', round: 'R16', home: null, away: null, date: '2026-07-04', from: { home: 'R03', away: 'R06' } },
   { id: 'S04', round: 'R16', home: null, away: null, date: '2026-07-06', from: { home: 'R07', away: 'R08' } },
-  { id: 'S05', round: 'R16', home: null, away: null, date: '2026-07-06', from: { home: 'R11', away: 'R12' } },
-  { id: 'S06', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R09', away: 'R10' } },
-  { id: 'S07', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R14', away: 'R16' } },
-  { id: 'S08', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R13', away: 'R15' } },
+  { id: 'S05', round: 'R16', home: null, away: null, date: '2026-07-06', from: { home: 'R12', away: 'R11' } },
+  { id: 'S06', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R10', away: 'R09' } },
+  { id: 'S07', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R15', away: 'R14' } },
+  { id: 'S08', round: 'R16', home: null, away: null, date: '2026-07-07', from: { home: 'R13', away: 'R16' } },
 
-  { id: 'Q01', round: 'QF', home: null, away: null, date: '2026-07-09', from: { home: 'S01', away: 'S02' } },
+  { id: 'Q01', round: 'QF', home: null, away: null, date: '2026-07-09', from: { home: 'S01', away: 'S03' } },
   { id: 'Q02', round: 'QF', home: null, away: null, date: '2026-07-10', from: { home: 'S05', away: 'S06' } },
-  { id: 'Q03', round: 'QF', home: null, away: null, date: '2026-07-11', from: { home: 'S03', away: 'S04' } },
-  { id: 'Q04', round: 'QF', home: null, away: null, date: '2026-07-12', from: { home: 'S07', away: 'S08' } },
+  { id: 'Q03', round: 'QF', home: null, away: null, date: '2026-07-11', from: { home: 'S02', away: 'S04' } },
+  { id: 'Q04', round: 'QF', home: null, away: null, date: '2026-07-11', from: { home: 'S07', away: 'S08' } },
 
   { id: 'SF1', round: 'SF', home: null, away: null, date: '2026-07-14', from: { home: 'Q01', away: 'Q02' } },
   { id: 'SF2', round: 'SF', home: null, away: null, date: '2026-07-15', from: { home: 'Q03', away: 'Q04' } },

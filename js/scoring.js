@@ -6,6 +6,18 @@ function getOutcome(home, away) {
   return 'D';
 }
 
+// Who actually advances from a finished knockout match. Prefers ESPN's explicit
+// "winner" flag (the only reliable signal once penalties are involved, since the
+// main score field excludes the shootout and can leave home/away level); falls
+// back to comparing scores for results that don't carry that flag.
+function matchWinner(result) {
+  if (!result) return null;
+  if (result.winner === 'home') return result.homeTeam;
+  if (result.winner === 'away') return result.awayTeam;
+  if (result.homeScore == null || result.awayScore == null || result.homeScore === result.awayScore) return null;
+  return result.homeScore > result.awayScore ? result.homeTeam : result.awayTeam;
+}
+
 // round: 'group' | 'R32' | 'R16' | 'QF' | 'SF' | '3RD' | 'FN'
 function scoreMatch(prediction, result, round) {
   if (!result || result.homeScore === null || result.awayScore === null) return 0;
@@ -16,10 +28,7 @@ function scoreMatch(prediction, result, round) {
   // Knockout winner-only prediction (from infobae simulator): who actually advances,
   // which depends on the full-time result including extra time/penalties.
   if (prediction.winner != null) {
-    const actualWinner = result.homeScore > result.awayScore ? result.homeTeam
-                       : result.awayScore > result.homeScore ? result.awayTeam
-                       : null; // draw shouldn't happen in knockout
-    return prediction.winner === actualWinner ? pts1x2 : 0;
+    return prediction.winner === matchWinner(result) ? pts1x2 : 0;
   }
 
   if (prediction.home == null || prediction.away == null) return 0;
@@ -171,8 +180,10 @@ function getBracketOutcome(matchId, resultsMap, wantLoser) {
   const teams = resolveBracketTeams(matchId, resultsMap);
   if (!teams.home || !teams.away) return null;
   const r = resultsMap[matchId];
-  if (!r || r.homeScore == null || !r.finished || r.homeScore === r.awayScore) return null;
-  const winner = r.homeScore > r.awayScore ? teams.home : teams.away;
+  if (!r || !r.finished) return null;
+  const winnerTeam = matchWinner(r);
+  if (!winnerTeam) return null;
+  const winner = winnerTeam === teams.home ? teams.home : teams.away;
   const loser  = winner === teams.home ? teams.away : teams.home;
   return wantLoser ? loser : winner;
 }

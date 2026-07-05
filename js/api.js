@@ -86,12 +86,22 @@ function espnEventToResult(event) {
     }
   }
 
+  // Who actually advances. For matches decided on penalties, ESPN's "score" field
+  // excludes the shootout (so home/away score end up level) — the explicit "winner"
+  // flag on each competitor is the only reliable way to know who progresses.
+  let winner = null;
+  if (finished) {
+    if (home.winner) winner = 'home';
+    else if (away.winner) winner = 'away';
+  }
+
   return {
     espnId:    event.id,
     homeTeam:  normalizeTeam(home.team.displayName),
     awayTeam:  normalizeTeam(away.team.displayName),
     homeScore, awayScore,
     regHomeScore, regAwayScore,
+    winner,
     status, finished, live, clock, period,
     date: event.date?.slice(0, 10),
   };
