@@ -55,6 +55,7 @@ function scheduleRefresh() {
     renderBracketView();
     if (currentView === 'matches')   renderMatchesView();
     if (currentView === 'evolution') renderEvolutionChart();
+    if (currentView === 'predict')   renderPredictForm();
     if (detailTarget) renderDetail();
     scheduleRefresh();
   }, delay);
@@ -811,8 +812,11 @@ function renderDetailMatchRow(match, participant, round) {
   const result  = resultsMap[match.id];
   const pred    = participant.predictions?.[match.id];
   const pts     = participant.breakdown[match.id] || 0;
-  const home    = match.home || '?';
-  const away    = match.away || '?';
+  // Team names always resolve from the real bracket (even for blackout rounds) —
+  // only the predictions themselves stay hidden, per canSeePrediction below.
+  const teams   = (match.home && match.away) ? { home: match.home, away: match.away } : resolveBracketTeams(match.id, resultsMap);
+  const home    = teams.home || (match.from ? bracketSlotLabel(match.from.home, match.loser) : '?');
+  const away    = teams.away || (match.from ? bracketSlotLabel(match.from.away, match.loser) : '?');
   const visible = canSeePrediction(participant.name, match);
 
   let resultStr;
