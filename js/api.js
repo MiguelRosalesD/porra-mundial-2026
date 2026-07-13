@@ -150,11 +150,27 @@ async function fetchAllResults() {
 
 // ── Fixture → result lookup ───────────────────────────────────────────────────
 
+// Swaps home/away on a result so it lines up with the fixture's home/away rather
+// than ESPN's. Needed because for bracket-resolved knockout matches, our fixture's
+// "home" slot is just whichever feeder match was listed first — it has no relation
+// to which team ESPN actually designates as home for the real match.
+function swapResultSides(r) {
+  return {
+    ...r,
+    homeTeam: r.awayTeam, awayTeam: r.homeTeam,
+    homeScore: r.awayScore, awayScore: r.homeScore,
+    regHomeScore: r.regAwayScore, regAwayScore: r.regHomeScore,
+    winner: r.winner === 'home' ? 'away' : r.winner === 'away' ? 'home' : r.winner,
+  };
+}
+
 function matchResult(fixture, espnResults) {
   if (!fixture.home || !fixture.away) return null;
   const home = normalizeTeam(fixture.home);
   const away = normalizeTeam(fixture.away);
-  return espnResults[`${home} vs ${away}`]
-      || espnResults[`${away} vs ${home}`]
-      || null;
+  const direct = espnResults[`${home} vs ${away}`];
+  if (direct) return direct;
+  const reversed = espnResults[`${away} vs ${home}`];
+  if (reversed) return swapResultSides(reversed);
+  return null;
 }
